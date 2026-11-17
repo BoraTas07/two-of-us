@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { allProfiles, endSession, hashPin, requireUser, startSession, verifyPin } from "@/lib/auth";
-import { ensureSchema, setConfig, sql } from "@/lib/db";
+import { ensureSchema, setConfig, sql, txGuard } from "@/lib/db";
 import {
   completeSubtask,
   completeTask,
@@ -54,6 +54,7 @@ export async function setupAction(_: FormState, form: FormData): Promise<FormSta
   const yesterday = addDays(todayStr(), -1);
   const ids: number[] = [];
   await sql.begin(async (tx) => {
+    await txGuard(tx);
     const [{ n }] = await tx<{ n: number }[]>`select count(*)::int as n from profiles`;
     if (n > 0) return;
     for (const p of people) {

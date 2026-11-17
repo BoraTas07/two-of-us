@@ -1,5 +1,5 @@
 import "server-only";
-import { ensureSchema, sql } from "./db";
+import { ensureSchema, sql, txGuard } from "./db";
 import { notifyLater } from "./game";
 import type { Profile } from "./types";
 
@@ -135,6 +135,7 @@ export async function buyReward(
   };
   let bought: { title: string; emoji: string; cost: number; gift: boolean } | null = null;
   await sql.begin(async (tx) => {
+    await txGuard(tx);
     const db = tx as unknown as Db;
     // Aynı anda iki satın alma bakiyeyi aşmasın diye kişinin satırını kilitle
     await db`select id from profiles where id = ${me.id} for update`;

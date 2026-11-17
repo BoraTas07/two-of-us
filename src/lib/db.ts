@@ -17,6 +17,8 @@ function createClient() {
     prepare: false,
     max: 3,
     idle_timeout: 20,
+    // Veritabanına ulaşılamazsa sonsuza dek bekleme
+    connect_timeout: 10,
     onnotice: () => {},
   });
 }
@@ -204,16 +206,46 @@ create table if not exists streak_log (
 );
 `;
 
-/** Tabloları (yoksa) oluşturur. Her sunucu işleminde bir kez çalışır. */
+/**
+ * Şema sürümü: tablo/sütun eklendiğinde bir artır. Sürüm veritabanındakiyle aynıysa açılışta
+ * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
+ * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
+ */
+const SCHEMA_VERSION = "6";
+
+/** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
+export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {
+  await tx
+    .unsafe(
+      `set local lock_timeout = '5s';
+       set local statement_timeout = '${statementSec}s';
+       set local idle_in_transaction_session_timeout = '15s'`,
+    )
+    .simple();
+}
+
+async function migrate(): Promise<void> {
+  try {
+    const rows = await sql<{ value: string }[]>`select value from app_config where key = 'schema_version'`;
+    if (rows[0]?.value === SCHEMA_VERSION) return;
+  } catch (e) {
+    // 42P01: tablo yok (ilk kurulum) → aşağıda oluşturulur
+    if ((e as { code?: string }).code !== "42P01") throw e;
+  }
+  await sql.begin(async (tx) => {
+    await txGuard(tx, 30);
+    await tx.unsafe(SCHEMA).simple();
+    await tx`insert into app_config (key, value) values ('schema_version', ${SCHEMA_VERSION})
+             on conflict (key) do update set value = excluded.value`;
+  });
+}
+
+/** Tabloları gerekiyorsa oluşturur/günceller. Her sunucu işleminde bir kez kontrol edilir. */
 export function ensureSchema(): Promise<void> {
-  globalForDb.__schema ??= sql
-    .unsafe(SCHEMA)
-    .simple()
-    .then(() => undefined)
-    .catch((e) => {
-      globalForDb.__schema = undefined;
-      throw e;
-    });
+  globalForDb.__schema ??= migrate().catch((e) => {
+    globalForDb.__schema = undefined;
+    throw e;
+  });
   return globalForDb.__schema;
 }
 

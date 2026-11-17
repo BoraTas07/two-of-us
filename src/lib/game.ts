@@ -2,7 +2,7 @@ import "server-only";
 import { after } from "next/server";
 import { BADGES, BADGE_BY_ID, type Badge, type BadgeStats } from "./badges";
 import { signAction } from "./auth";
-import { ensureSchema, getConfig, sql } from "./db";
+import { ensureSchema, getConfig, sql, txGuard } from "./db";
 import { GOAL_BONUS, STREAK_BONUS, levelFromXp } from "./levels";
 import { sendPush, type PushMessage } from "./push";
 import { isDueOn } from "./recurrence";
@@ -145,6 +145,7 @@ export async function evaluateStreaks(today = todayStr()): Promise<void> {
     if (p.streak_through >= yesterday) continue;
     const events: { day: string; outcome: DayOutcome; streak: number; bonus: number }[] = [];
     await sql.begin(async (tx) => {
+      await txGuard(tx);
       const [row] = await tx<Profile[]>`
         select id, streak, best_streak, freezes, freezes_month, streak_through
         from profiles where id = ${p.id} for update`;
