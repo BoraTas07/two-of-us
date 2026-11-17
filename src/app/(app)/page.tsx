@@ -150,7 +150,10 @@ export default async function TodayPage() {
 
       <Link href="/biz" className="card mt-6 block p-4">
         <div className="flex items-center justify-between font-black">
-          <span>🏆 Haftalık ortak hedef</span>
+          <span>
+            🏆 Haftalık ortak hedef
+            <span className="block text-xs font-semibold text-muted">Sadece 💞 ortak görevler sayılır</span>
+          </span>
           <span className="text-sm text-muted">
             {Math.min(v.goal.total, v.goal.target)}/{v.goal.target} 🥕
           </span>

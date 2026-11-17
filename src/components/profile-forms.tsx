@@ -11,7 +11,13 @@ function Status({ state }: { state: { error?: string; ok?: string } | undefined 
   return null;
 }
 
-export function ProfileForm({ initial }: { initial: { name: string; emoji: string; color: string } }) {
+export function ProfileForm({
+  initial,
+  partnerColor,
+}: {
+  initial: { name: string; emoji: string; color: string };
+  partnerColor: string;
+}) {
   const [state, action, pending] = useActionState(updateProfileAction, undefined);
   const [emoji, setEmoji] = useState(initial.emoji);
   const [color, setColor] = useState(initial.color);
@@ -19,7 +25,7 @@ export function ProfileForm({ initial }: { initial: { name: string; emoji: strin
     <form action={action} className="space-y-3">
       <input className="input" name="name" defaultValue={initial.name} maxLength={24} required />
       <EmojiPicker name="emoji" options={AVATAR_EMOJIS} value={emoji} onChange={setEmoji} color={color} />
-      <ColorPicker name="color" value={color} onChange={setColor} />
+      <ColorPicker name="color" value={color} onChange={setColor} taken={partnerColor} />
       <Status state={state} />
       <button className="btn w-full bg-brand text-white" disabled={pending}>
         Kaydet

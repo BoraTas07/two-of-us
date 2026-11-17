@@ -45,6 +45,7 @@ export async function setupAction(_: FormState, form: FormData): Promise<FormSta
     color: cleanColor(form.get(`color${i}`)),
     pin: cleanPin(form.get(`pin${i}`)),
   }));
+  if (people[0].color === people[1].color) return { error: "İkiniz farklı renkler seçmelisiniz." };
   for (const p of people) {
     if (!p.name) return { error: "İki kişinin de adını yaz." };
     if (!p.pin) return { error: `${p.name} için 4-6 haneli bir PIN gir.` };
@@ -262,11 +263,12 @@ export async function setGoalAction(target: number) {
 }
 
 export async function updateProfileAction(_: FormState, form: FormData): Promise<FormState> {
-  const { me } = await requireUser();
+  const { me, partner } = await requireUser();
   const name = String(form.get("name") ?? "").trim().slice(0, 24);
   if (!name) return { error: "Ad boş olamaz." };
   const emoji = String(form.get("emoji") || me.emoji).slice(0, 8);
   const color = cleanColor(form.get("color"));
+  if (color === partner.color) return { error: "Bu renk partnerinin. Farklı bir renk seç." };
   await sql`update profiles set name = ${name}, emoji = ${emoji}, color = ${color} where id = ${me.id}`;
   refresh();
   return { ok: "Kaydedildi ✨" };

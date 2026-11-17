@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { ensureSchema, getOrCreateConfig, sql } from "./db";
-import type { Profile } from "./types";
+import { COLORS, type Profile } from "./types";
 
 const COOKIE = "ikimiz_oturum";
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -68,13 +68,34 @@ export async function allProfiles(): Promise<Profile[]> {
 }
 
 /**
+ * İki kişinin renkleri aynıysa ya da artık listede olmayan bir renkse (eski sürümden kalma),
+ * ikinci kişiye boştaki ilk rengi verir. Bir şey değiştiyse true döner.
+ */
+async function fixColors(profiles: Profile[]): Promise<boolean> {
+  let changed = false;
+  const used = new Set<string>();
+  for (const p of profiles) {
+    if (p.color in COLORS && !used.has(p.color)) {
+      used.add(p.color);
+      continue;
+    }
+    const free = Object.keys(COLORS).find((k) => !used.has(k) && !profiles.some((o) => o.id !== p.id && o.color === k))!;
+    await sql`update profiles set color = ${free} where id = ${p.id}`;
+    used.add(free);
+    changed = true;
+  }
+  return changed;
+}
+
+/**
  * Giriş yapmış kişiyi ve partnerini döndürür. Giriş yoksa giriş sayfasına,
  * hiç profil yoksa kurulum sayfasına yönlendirir.
  */
 export async function requireUser(): Promise<{ me: Profile; partner: Profile }> {
   await connection(); // her istekte yeniden oluştur, asla önceden statik üretme
-  const profiles = await allProfiles();
+  let profiles = await allProfiles();
   if (profiles.length < 2) redirect("/kurulum");
+  if (await fixColors(profiles)) profiles = await allProfiles();
   const id = await sessionProfileId();
   const me = profiles.find((p) => p.id === id);
   if (!me) redirect("/giris");

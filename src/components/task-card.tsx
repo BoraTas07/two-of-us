@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useOptimistic, useState, useTransition } from "react";
 import { completeAction, completeSubtaskAction, undoAction, undoSubtaskAction } from "@/app/actions";
 import { formatRelative } from "@/lib/time";
-import { colorOf } from "@/lib/types";
+import { SHARED_COLOR, colorOf } from "@/lib/types";
 import type { SubItem, TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
 import { CarrotChip } from "./ui";
@@ -28,7 +28,7 @@ export default function TaskCard({
   const [isPending, start] = useTransition();
   const [done, setDone] = useOptimistic(item.done);
   const [error, setError] = useState<string | null>(null);
-  const c = colorOf(item.shared ? "berry" : item.assigneeId === me.id ? me.color : partner.color);
+  const c = item.shared ? SHARED_COLOR : colorOf(item.assigneeId === me.id ? me.color : partner.color);
   const mineDone = !!done && done.byId === me.id;
   const doneBy = done ? (done.byId === me.id ? me : partner) : null;
   const subCount = item.subtasks.length;

@@ -273,14 +273,27 @@ export async function checkBadges(profileId: number, today = todayStr()): Promis
 // ---------------------------------------------------------------- ortak hedef
 
 export async function weeklyGoalTarget(): Promise<number> {
-  return Number((await getConfig("weekly_goal")) ?? 300);
+  return Number((await getConfig("weekly_goal")) ?? 100);
 }
 
+/**
+ * Haftalık ortak hedef ilerlemesi: SADECE ortak (💞) görevlerden gelen havuçlar sayılır.
+ * Ortak görevde ikinize de havuç yazılsa da hedefe bir kez eklenir; "kim katkı verdi"
+ * görevi (ya da adımı) bitiren kişiye yazılır. Bireysel görevler bu çubuğu ilerletmez.
+ */
 export async function weekProgress(week: string): Promise<{ total: number; byProfile: Map<number, number> }> {
+  const from = week;
+  const to = addDays(week, 6);
   const rows = await sql<{ profile_id: number; total: number }[]>`
-    select profile_id, sum(amount)::int as total from xp_events
-    where kind = 'task' and day >= ${week} and day <= ${addDays(week, 6)}
-    group by profile_id`;
+    select profile_id, sum(xp)::int as total from (
+      select c.profile_id, c.xp from completions c join tasks t on t.id = c.task_id
+      where t.assignee_id is null and c.status = 'approved'
+        and (c.completed_at at time zone 'Europe/Istanbul')::date between ${from}::date and ${to}::date
+      union all
+      select sc.profile_id, sc.xp from subtask_completions sc join tasks t on t.id = sc.task_id
+      where t.assignee_id is null and sc.status = 'approved'
+        and (sc.completed_at at time zone 'Europe/Istanbul')::date between ${from}::date and ${to}::date
+    ) x group by profile_id`;
   const byProfile = new Map(rows.map((r) => [r.profile_id, r.total]));
   return { total: rows.reduce((s, r) => s + r.total, 0), byProfile };
 }

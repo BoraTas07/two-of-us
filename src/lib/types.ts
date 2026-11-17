@@ -41,14 +41,18 @@ export type Completion = {
   completed_at: Date;
 };
 
+// Kişi renkleri: her ikili normal görüşte net ayrılacak şekilde seçildi (doğrulayıcıdan geçti).
+// İki kişi aynı rengi seçemez.
 export const COLORS = {
-  clay: { name: "Kiremit", bg: "#b8653f", soft: "#f4e3d8", dark: "#8a4a2d" },
-  teal: { name: "Petrol", bg: "#0f89a8", soft: "#dcecef", dark: "#0b6077" },
-  honey: { name: "Bal", bg: "#b0862a", soft: "#f3e9d3", dark: "#7d5e1c" },
-  plum: { name: "Erik", bg: "#7560ad", soft: "#e9e4f2", dark: "#53437e" },
-  olive: { name: "Zeytin", bg: "#6b8a35", soft: "#e6ecd9", dark: "#4c6325" },
-  berry: { name: "Böğürtlen", bg: "#a8517c", soft: "#f3e0e8", dark: "#7a3a59" },
+  clay: { name: "Turuncu", bg: "#d9661c", soft: "#fbe3d2", dark: "#a34a10" },
+  teal: { name: "Mavi", bg: "#1f78c8", soft: "#d8e8f8", dark: "#155a99" },
+  olive: { name: "Yeşil", bg: "#2f9150", soft: "#d7eddd", dark: "#216b39" },
+  plum: { name: "Mor", bg: "#8448c8", soft: "#e9ddf7", dark: "#5f2f99" },
+  berry: { name: "Pembe", bg: "#d1407f", soft: "#f9dce9", dark: "#9e2c5e" },
 } as const;
+
+/** Ortak görevlerin rengi (kişi renklerinden ayrı, uygulamanın kiremit tonu) */
+export const SHARED_COLOR = { name: "Ortak", bg: "#a65d3c", soft: "#f3e4d9", dark: "#82462c" };
 
 export type ColorName = keyof typeof COLORS;
 

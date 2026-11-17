@@ -79,7 +79,7 @@ Uygulamanın her dakika "saati gelen hatırlatma var mı?" diye bakması gerekiy
 | **Mağaza 🛍️** | Kendine ödül koy ya da partnerine hediye tanımla; havuçlarla satın alınır. Harcamak seviyeni düşürmez |
 | **Seri 🔥** | Günün tüm görevlerini bitirince seri 1 artar. 7 ve 30. günde bonus havuç |
 | **Joker 🧊** | Bir gün kaçırırsan otomatik devreye girer, serin korunur. Her ay 2 tane yenilenir |
-| **Ortak hedef 🏆** | Haftalık birlikte toplanacak havuç. Ulaşınca ikinize de +50 🥕 |
+| **Ortak hedef 🏆** | Haftalık hedef sadece 💞 ortak görevlerden gelen havuçla dolar (varsayılan 100, değiştirilebilir). Ulaşınca ikinize de +50 🥕 |
 | **Rozetler** | 16 rozet: ilk görev, seriler, erkenci kuş, gece kuşu, adil hakem… |
 | **Bildirim butonları** | Android'de hatırlatmadan "✓ Tamamla", onay isteğinden "✓ Onayla / ↩ Geri çevir" doğrudan yapılır. iPhone bu butonları desteklemiyor; bildirime dokununca uygulama ilgili ekranda açılır |
 | **Bildirimler** | Görevin hatırlatma saatinde · sabah 09:00 özeti · akşam 21:00 "serin tehlikede" · partnerin görev verince / onay isteyince / rozet kazanınca · "Dürt" düğmesi |

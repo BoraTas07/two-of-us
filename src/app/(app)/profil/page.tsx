@@ -30,7 +30,7 @@ select cron.schedule('ikimiz-hatirlatma', '* * * * *',
 
       <SectionTitle>Profilim</SectionTitle>
       <div className="card p-4">
-        <ProfileForm initial={{ name: me.name, emoji: me.emoji, color: me.color }} />
+        <ProfileForm initial={{ name: me.name, emoji: me.emoji, color: me.color }} partnerColor={partner.color} />
       </div>
 
       <section id="bildirimler">

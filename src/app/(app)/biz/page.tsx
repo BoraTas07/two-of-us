@@ -75,6 +75,8 @@ export default async function UsPage() {
           {reached
             ? "Bu haftanın hedefi tamam! İkinize de bonus havuç verildi 🎉"
             : `Hedefe ${target - progress.total} havuç kaldı. Ulaşınca ikinize de +50 🥕!`}
+          <br />
+          Sadece 💞 ortak görevler bu hedefi ilerletir; kendi görevleriniz saymaz.
         </p>
       </div>
 
@@ -139,7 +141,7 @@ export default async function UsPage() {
           <li>O günün tüm görevlerini bitirirsen 🔥 serin bir gün uzar.</li>
           <li>Bir gün kaçırırsan 🧊 joker otomatik devreye girer ve serini korur. Her ay 2 joker yenilenir.</li>
           <li>7 ve 30 günlük serilerde bonus havuç var.</li>
-          <li>Haftalık hedefe ikiniz birlikte ulaşırsanız ikinize de +50 🥕.</li>
+          <li>Haftalık ortak hedefi sadece 💞 ortak görevler doldurur. Ulaşırsanız ikinize de +50 🥕.</li>
         </ul>
       </div>
     </>

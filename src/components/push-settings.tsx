@@ -50,19 +50,19 @@ function useEnv() {
 }
 
 function IosInstallSteps() {
+  const steps = [
+    <>Safari&apos;de alttaki <b>Paylaş</b> düğmesine dokun (kare ve yukarı ok ⬆️)</>,
+    <><b>Ana Ekrana Ekle</b> seçeneğine dokun ➕</>,
+    <>Ana ekrandaki <b>Two Of Us</b> simgesinden aç ve bu sayfaya tekrar gel</>,
+  ];
   return (
-    <ol className="mt-3 space-y-2 text-sm font-bold">
-      <li className="flex gap-2">
-        <span className="chip bg-brand text-white">1</span> Safari&apos;de alttaki <b>Paylaş</b> düğmesine dokun (kare
-        ve yukarı ok ⬆️)
-      </li>
-      <li className="flex gap-2">
-        <span className="chip bg-brand text-white">2</span> <b>Ana Ekrana Ekle</b>&apos;yi seç ➕
-      </li>
-      <li className="flex gap-2">
-        <span className="chip bg-brand text-white">3</span> Ana ekrandaki <b>Two Of Us</b> simgesinden aç ve bu sayfaya
-        tekrar gel
-      </li>
+    <ol className="mt-3 space-y-2 text-sm font-semibold">
+      {steps.map((s, i) => (
+        <li key={i} className="flex items-start gap-2">
+          <span className="chip mt-0.5 shrink-0 bg-brand text-white">{i + 1}</span>
+          <span>{s}</span>
+        </li>
+      ))}
     </ol>
   );
 }

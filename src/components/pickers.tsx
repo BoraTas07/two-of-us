@@ -46,28 +46,46 @@ export function ColorPicker({
   name,
   value,
   onChange,
+  taken,
 }: {
   name: string;
   value: string;
   onChange: (v: string) => void;
+  /** Partnerin kullandığı renk: seçilemez */
+  taken?: string;
 }) {
   return (
-    <div className="flex gap-2">
-      <input type="hidden" name={name} value={value} />
-      {Object.entries(COLORS).map(([key, c]) => (
-        <button
-          type="button"
-          key={key}
-          onClick={() => onChange(key)}
-          aria-label={c.name}
-          aria-pressed={value === key}
-          className="h-9 w-9 rounded-full transition-transform active:scale-90"
-          style={{
-            background: c.bg,
-            boxShadow: value === key ? `0 0 0 3px white, 0 0 0 5px ${c.bg}` : "inset 0 -3px 0 rgb(0 0 0 / .2)",
-          }}
-        />
-      ))}
+    <div>
+      <div className="flex gap-2.5">
+        <input type="hidden" name={name} value={value} />
+        {Object.entries(COLORS).map(([key, c]) => {
+          const isTaken = key === taken;
+          return (
+            <button
+              type="button"
+              key={key}
+              onClick={() => !isTaken && onChange(key)}
+              disabled={isTaken}
+              aria-label={isTaken ? `${c.name} (partnerinin rengi)` : c.name}
+              aria-pressed={value === key}
+              title={isTaken ? "Partnerinin rengi" : c.name}
+              className="relative flex h-9 w-9 items-center justify-center rounded-full text-xs text-white transition-transform active:scale-90 disabled:cursor-not-allowed"
+              style={{
+                background: c.bg,
+                opacity: isTaken ? 0.25 : 1,
+                boxShadow: value === key ? `0 0 0 3px var(--surface), 0 0 0 5px ${c.bg}` : "none",
+              }}
+            >
+              {isTaken ? "✕" : value === key ? "✓" : ""}
+            </button>
+          );
+        })}
+      </div>
+      {taken && taken in COLORS && (
+        <p className="mt-1.5 text-xs font-semibold text-muted">
+          Soluk renk partnerinin; herkesin rengi farklı olmalı.
+        </p>
+      )}
     </div>
   );
 }
