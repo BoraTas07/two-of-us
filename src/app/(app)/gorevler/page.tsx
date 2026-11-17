@@ -7,16 +7,20 @@ import { formatRelative } from "@/lib/time";
 
 export const metadata = { title: "Görevler — Two Of Us" };
 
+// "Benim" varsayılan sekme: yalın /gorevler adresi onu açar
 const FILTERS = [
-  { key: "hepsi", label: "Hepsi" },
   { key: "ben", label: "Benim" },
   { key: "partner", label: "Partnerin" },
   { key: "ortak", label: "Ortak" },
+  { key: "hepsi", label: "Hepsi" },
 ] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<{ kim?: string }> }) {
   const { me, partner } = await requireUser();
-  const { kim = "hepsi" } = await searchParams;
+  const raw = (await searchParams).kim;
+  const kim: FilterKey = FILTERS.some((f) => f.key === raw) ? (raw as FilterKey) : "ben";
   const v = await allTasksView(me, partner);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
@@ -56,7 +60,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         {FILTERS.map((f) => (
           <Link
             key={f.key}
-            href={f.key === "hepsi" ? "/gorevler" : `/gorevler?kim=${f.key}`}
+            href={f.key === "ben" ? "/gorevler" : `/gorevler?kim=${f.key}`}
             className={`flex-1 rounded-xl px-2 py-2 text-center text-sm font-extrabold whitespace-nowrap ${
               kim === f.key ? "bg-surface text-brand shadow-[0_3px_0_var(--line)]" : "text-muted"
             }`}
@@ -72,6 +76,15 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             Henüz görev yok.{" "}
             <Link href="/gorevler/yeni" className="text-brand underline">
               İlk görevi ekle
+            </Link>
+          </Empty>
+        </div>
+      ) : kim === "ben" && items.length === 0 ? (
+        <div className="mt-6">
+          <Empty emoji="🌤️">
+            Sana ait görev yok.{" "}
+            <Link href="/gorevler?kim=hepsi" className="text-brand underline">
+              Hepsini gör
             </Link>
           </Empty>
         </div>

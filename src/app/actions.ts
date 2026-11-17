@@ -207,7 +207,8 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
     }
   }
   refresh();
-  redirect("/gorevler");
+  // Görev kime aitse o sekmeye dön (varsayılan sekme "Benim" olduğu için)
+  redirect(assignee === me.id ? "/gorevler" : assignee === null ? "/gorevler?kim=ortak" : "/gorevler?kim=partner");
 }
 
 /** Alt görev listesini kaydeder: var olanları günceller, yenileri ekler, çıkarılanları arşivler. */
