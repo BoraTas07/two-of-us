@@ -3,6 +3,7 @@ import { allProfiles, signAction } from "@/lib/auth";
 import { activeTasks, completionFor, loadSubtasks, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
 import { setConfig } from "@/lib/db";
 import { purgeOldPhotos } from "@/lib/photos";
+import { moodAskTime, moodsForDay } from "@/lib/moods";
 import { cronKey, markSent, sendPush } from "@/lib/push";
 import { isDueOn } from "@/lib/recurrence";
 import { addDays, nowHM, todayStr } from "@/lib/time";
@@ -43,6 +44,7 @@ export async function GET(req: Request) {
   const idx = indexCompletions(await loadCompletions(addDays(today, -1)), tasks);
   const sent: string[] = [];
   const withSubs = new Set((await loadSubtasks()).map((x) => x.task_id));
+  const moodDone = new Set((await moodsForDay(today)).map((m) => m.profile_id));
 
   for (const p of profiles) {
     // Bugün yapılacaklar + tarihi geçmiş ya da tarihsiz, henüz bitmemiş tek seferlik görevler
@@ -71,6 +73,17 @@ export async function GET(req: Request) {
         });
         sent.push(`hatırlatma ${p.name}: ${t.title}`);
       }
+    }
+
+    // Günün rastgele saatinde "Şu an nasıl hissediyorsun?" (bugün henüz cevaplamadıysa)
+    if (hm >= moodAskTime(p.id, today) && !moodDone.has(p.id) && (await markSent(`mood:${today}:${p.id}`))) {
+      await sendPush(p.id, {
+        title: "💭 Şu an nasıl hissediyorsun?",
+        body: "Bir dokunuşla seç; partnerin de görsün.",
+        url: "/#his",
+        tag: "mood-ask",
+      });
+      sent.push(`ruh hali ${p.name}`);
     }
 
     // Sabah özeti

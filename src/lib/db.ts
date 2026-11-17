@@ -261,6 +261,29 @@ create table if not exists songs (
 -- Şarkıya bırakılan emoji tepkisi (eski "beğeni"ler ❤️ sayılır)
 alter table songs add column if not exists reaction text;
 
+-- Günlük ruh hali (kişi başına günde bir; gün içinde güncellenebilir)
+create table if not exists moods (
+  profile_id int not null references profiles(id) on delete cascade,
+  day text not null,
+  mood text not null,
+  note text not null default '',
+  updated_at timestamptz not null default now(),
+  primary key (profile_id, day)
+);
+
+-- "Bugün partnerin için ne yaptın?"
+create table if not exists deeds (
+  id serial primary key,
+  from_id int not null references profiles(id) on delete cascade,
+  to_id int not null references profiles(id) on delete cascade,
+  day text not null,
+  emoji text not null default '💝',
+  text text not null,
+  thanked_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists deeds_day on deeds (day);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -274,7 +297,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "12";
+const SCHEMA_VERSION = "13";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {

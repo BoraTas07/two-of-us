@@ -20,6 +20,7 @@ import { createObjection, resolveObjection, withdrawObjection } from "@/lib/obje
 import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
 import { requestLocation, saveLocation, setSharing } from "@/lib/location";
 import { reactSong, removeTodaySong, shareSong } from "@/lib/songs";
+import { addDeed, removeDeed, setMood, thankDeed } from "@/lib/moods";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -475,6 +476,35 @@ export async function removeSongAction() {
 export async function reactSongAction(songId: number, emoji: string | null) {
   const { me } = await requireUser();
   const err = await reactSong(me, songId, emoji);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- ruh hali & partnerin için
+
+export async function setMoodAction(mood: string, note: string) {
+  const { me, partner } = await requireUser();
+  const err = await setMood(me, partner, mood, note);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function addDeedAction(emoji: string, text: string) {
+  const { me, partner } = await requireUser();
+  const err = await addDeed(me, partner, emoji, text);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function removeDeedAction(id: number) {
+  const { me } = await requireUser();
+  await removeDeed(me, id);
+  refresh();
+}
+
+export async function thankDeedAction(id: number) {
+  const { me } = await requireUser();
+  const err = await thankDeed(me, id);
   refresh();
   return err ? { error: err } : { ok: true };
 }
