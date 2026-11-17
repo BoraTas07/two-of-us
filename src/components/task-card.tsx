@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useOptimistic, useState, useTransition } from "react";
-import { completeAction, undoAction } from "@/app/actions";
+import { completeAction, completeSubtaskAction, undoAction, undoSubtaskAction } from "@/app/actions";
 import { formatRelative } from "@/lib/time";
 import { colorOf } from "@/lib/types";
-import type { TaskItem } from "@/lib/views";
+import type { SubItem, TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
 import { CarrotChip } from "./ui";
 
@@ -16,11 +16,14 @@ export default function TaskCard({
   me,
   partner,
   today,
+  subsOpen = true,
 }: {
   item: TaskItem;
   me: Person;
   partner: Person;
   today: string;
+  /** Alt görev listesi açık başlasın mı */
+  subsOpen?: boolean;
 }) {
   const [isPending, start] = useTransition();
   const [done, setDone] = useOptimistic(item.done);
@@ -28,9 +31,13 @@ export default function TaskCard({
   const c = colorOf(item.shared ? "berry" : item.assigneeId === me.id ? me.color : partner.color);
   const mineDone = !!done && done.byId === me.id;
   const doneBy = done ? (done.byId === me.id ? me : partner) : null;
+  const subCount = item.subtasks.length;
+  const subDone = item.subtasks.filter((x) => x.done).length;
+  const subTotal = item.subtasks.reduce((n, x) => n + x.xp, 0) + item.xp;
 
   function complete(e: React.MouseEvent<HTMLButtonElement>) {
     if (isPending) return;
+    if (subCount - subDone > 1 && !confirm(`Kalan ${subCount - subDone} adımın hepsi tamamlandı olarak işaretlensin mi?`)) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = { x: rect.left + rect.width / 2, y: rect.top };
     setError(null);
@@ -114,7 +121,7 @@ export default function TaskCard({
         aria-label={`${item.title} görevini tamamla`}
         className="btn bg-brand px-3.5 py-2 text-sm text-white"
       >
-        Tamamla
+        {subCount > 0 && subDone < subCount ? "Hepsini bitir" : "Tamamla"}
       </button>
     );
   } else {
@@ -138,13 +145,129 @@ export default function TaskCard({
             {item.title}
           </div>
           <div className="mt-1 flex flex-wrap gap-1">
-            <CarrotChip n={item.xp} faded={!!done} />
+            <CarrotChip n={subCount ? subTotal : item.xp} faded={!!done} />
+            {subCount > 0 && (
+              <span className={`chip ${subDone === subCount ? "bg-sage-soft text-sage-ink" : "bg-line text-ink"}`}>
+                ☑ {subDone}/{subCount}
+              </span>
+            )}
             {meta}
           </div>
         </Link>
         <div className="shrink-0">{action}</div>
       </div>
+      {subCount > 0 && (
+        <details className="group mt-2" open={subsOpen}>
+          <summary className="cursor-pointer list-none px-1 text-xs font-semibold text-muted">
+            <span className="group-open:hidden">Adımları göster ▾</span>
+            <span className="hidden group-open:inline">Adımları gizle ▴</span>
+          </summary>
+          <ul className="mt-1.5 space-y-1">
+            {item.subtasks.map((x) => (
+              <SubRow
+                key={x.id}
+                sub={x}
+                me={me}
+                partner={partner}
+                canCheck={item.canComplete}
+                needsApproval={item.requiresApproval && !item.shared}
+                blocked={item.blockedReason}
+                onError={setError}
+              />
+            ))}
+          </ul>
+          {item.xp > 0 && (
+            <p className="mt-1.5 px-1 text-xs font-semibold text-muted">
+              Hepsi bitince +{item.xp} 🥕 bonus{item.requiresApproval && !item.shared ? " · havuçlar onaydan sonra gelir" : ""}
+            </p>
+          )}
+        </details>
+      )}
       {error && <p className="animate-pop mt-2 text-sm font-semibold text-danger">{error}</p>}
     </div>
+  );
+}
+
+function SubRow({
+  sub,
+  me,
+  partner,
+  canCheck,
+  needsApproval,
+  blocked,
+  onError,
+}: {
+  sub: SubItem;
+  me: Person;
+  partner: Person;
+  canCheck: boolean;
+  needsApproval: boolean;
+  blocked: string | null;
+  onError: (e: string | null) => void;
+}) {
+  const [busy, start] = useTransition();
+  const [done, setDone] = useOptimistic(sub.done);
+  const mine = !!done && done.byId === me.id;
+  const who = done ? (done.byId === me.id ? me : partner) : null;
+  const clickable = done ? mine : canCheck;
+
+  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
+    if (busy || !clickable) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    onError(null);
+    start(async () => {
+      if (done) {
+        setDone(null);
+        await undoSubtaskAction(sub.id);
+        return;
+      }
+      setDone({ status: needsApproval ? "pending" : "approved", byId: me.id });
+      const r = await completeSubtaskAction(sub.id);
+      if ("error" in r) {
+        onError(r.error);
+        return;
+      }
+      if (r.status === "already") return;
+      celebrate({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+        xp: r.xp,
+        pending: r.status === "pending",
+        quiet: !r.parentDone,
+        levelUp: r.levelUp,
+        badges: r.badges,
+        goalReached: r.goalReached,
+      });
+    });
+  }
+
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={busy || !clickable}
+        title={!clickable && !done ? (blocked ?? undefined) : undefined}
+        aria-pressed={!!done}
+        aria-label={done ? `${sub.title} (tamamlandı${mine ? ", geri almak için dokun" : ""})` : `${sub.title} adımını tamamla`}
+        className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition-colors hover:bg-bg disabled:cursor-default"
+      >
+        <span
+          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
+            done?.status === "approved"
+              ? "bg-sage text-white"
+              : done
+                ? "bg-warn-soft text-xp-ink ring-1 ring-xp"
+                : "ring-[1.5px] ring-line"
+          }`}
+          aria-hidden
+        >
+          {done?.status === "approved" ? "✓" : done ? "⏳" : ""}
+        </span>
+        <span className={`flex-1 text-sm font-semibold ${done ? "text-muted line-through" : ""}`}>{sub.title}</span>
+        {who && who.id !== me.id && <span className="text-xs">{who.emoji}</span>}
+        <span className={`text-xs font-semibold ${done ? "text-muted" : "text-xp-ink"}`}>🥕 {sub.xp}</span>
+      </button>
+    </li>
   );
 }

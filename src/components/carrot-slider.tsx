@@ -17,10 +17,13 @@ export default function CarrotSlider({
   name,
   value,
   onChange,
+  allowZero = false,
 }: {
   name: string;
   value: number;
   onChange: (v: number) => void;
+  /** 0 seçilebilsin mi (ör. alt görevli işlerde "bonus yok") */
+  allowZero?: boolean;
 }) {
   // Kutu boşaltılıp yeniden yazılabilsin diye metni ayrıca tutuyoruz
   const [text, setText] = useState<string | null>(null);
@@ -50,13 +53,13 @@ export default function CarrotSlider({
         <input
           type="number"
           inputMode="numeric"
-          min={MIN_CARROTS}
+          min={allowZero ? 0 : MIN_CARROTS}
           max={MAX_CARROTS}
           value={text ?? String(value)}
           onChange={(e) => {
             setText(e.target.value);
             const n = Number(e.target.value);
-            if (e.target.value !== "" && Number.isFinite(n)) onChange(clampCarrots(n));
+            if (e.target.value !== "" && Number.isFinite(n)) onChange(allowZero && n <= 0 ? 0 : clampCarrots(n));
           }}
           onBlur={() => setText(null)}
           aria-label="Havuç miktarını yaz"
@@ -64,7 +67,7 @@ export default function CarrotSlider({
         />
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {QUICK.map((q) => (
+        {(allowZero ? [0, ...QUICK] : QUICK).map((q) => (
           <button
             key={q}
             type="button"
@@ -74,7 +77,7 @@ export default function CarrotSlider({
             }}
             className={`chip px-3 py-1.5 ${value === q ? "bg-brand text-white" : "bg-line text-muted"}`}
           >
-            {q}
+            {q === 0 ? "Bonus yok" : q}
           </button>
         ))}
       </div>

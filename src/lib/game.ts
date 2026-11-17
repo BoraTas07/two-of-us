@@ -8,7 +8,7 @@ import { sendPush, type PushMessage } from "./push";
 import { isDueOn } from "./recurrence";
 import { applyDay, type DayOutcome } from "./streak";
 import { addDays, daysBetween, todayStr, weekStart } from "./time";
-import type { Completion, Profile, Task } from "./types";
+import type { Completion, Profile, SubCompletion, Subtask, Task } from "./types";
 
 type Sql = typeof sql;
 
@@ -316,12 +316,25 @@ export type CompleteResult = {
   levelUp: number | null;
   badges: { emoji: string; name: string; description: string }[];
   goalReached: boolean;
+  /** Alt görev işaretlendiyse: ana görev de bu işlemle tamamlandı mı? */
+  parentDone?: boolean;
 };
 
+const NOTHING: CompleteResult = { status: "already", xp: 0, levelUp: null, badges: [], goalReached: false };
+
 async function awardXp(profileIds: number[], completionId: number, xp: number, title: string, day: string) {
+  if (xp <= 0) return;
   for (const pid of profileIds) {
     await sql`insert into xp_events (profile_id, amount, kind, completion_id, note, day)
               values (${pid}, ${xp}, 'task', ${completionId}, ${title}, ${day})`;
+  }
+}
+
+async function awardSubXp(profileIds: number[], subCompletionId: number, xp: number, note: string, day: string) {
+  if (xp <= 0) return;
+  for (const pid of profileIds) {
+    await sql`insert into xp_events (profile_id, amount, kind, subtask_completion_id, note, day)
+              values (${pid}, ${xp}, 'task', ${subCompletionId}, ${note}, ${day})`;
   }
 }
 
@@ -330,33 +343,90 @@ export async function getTask(id: number): Promise<Task | undefined> {
   return t;
 }
 
-export async function completeTask(me: Profile, taskId: number): Promise<CompleteResult> {
-  const today = todayStr();
-  const task = await getTask(taskId);
+// ---------------------------------------------------------------- alt görevler
+
+export async function loadSubtasks(taskId?: number): Promise<Subtask[]> {
+  await ensureSchema();
+  return taskId
+    ? sql<Subtask[]>`select id, task_id, title, xp, position from subtasks
+                     where task_id = ${taskId} and not archived order by position, id`
+    : sql<Subtask[]>`select id, task_id, title, xp, position from subtasks
+                     where not archived order by task_id, position, id`;
+}
+
+export async function loadSubCompletions(from: string): Promise<SubCompletion[]> {
+  return sql<SubCompletion[]>`
+    select sc.* from subtask_completions sc join tasks t on t.id = sc.task_id
+    where sc.occ_date >= ${from} or t.kind = 'once'`;
+}
+
+/** Görevin hangi "gün"üne ait olduğu: tekrarlıda bugün, tek seferlikte sabit bir anahtar */
+function occFor(task: Task, today: string): string {
+  return task.kind === "once" ? (task.due_date ?? task.start_date) : today;
+}
+
+/** Görev şu an bu kişi tarafından tamamlanabilir mi? Değilse hata fırlatır. */
+async function checkCompletable(me: Profile, task: Task | undefined, today: string): Promise<Task> {
   if (!task || task.archived || !relevantTo(task, me.id)) throw new Error("Görev bulunamadı");
-  const shared = task.assignee_id === null;
+  if (task.kind !== "once" && !isDueOn(task, today)) throw new Error("Bu görev bugün yapılacaklar arasında değil");
+  return task;
+}
 
-  if (task.kind === "once") {
-    const prev = await sql`select 1 from completions where task_id = ${task.id} limit 1`;
-    if (prev.length) return { status: "already", xp: 0, levelUp: null, badges: [], goalReached: false };
-  } else if (!isDueOn(task, today)) {
-    throw new Error("Bu görev bugün yapılacaklar arasında değil");
+/** Bir alt görevi işaretler (havucunu verir). Yeni işaretlendiyse kaydı döner. */
+async function insertSubCompletion(
+  me: Profile,
+  partner: Profile,
+  task: Task,
+  sub: Subtask,
+  occ: string,
+  status: "pending" | "approved",
+  today: string,
+): Promise<boolean> {
+  const [sc] = await sql<{ id: number }[]>`
+    insert into subtask_completions (subtask_id, task_id, profile_id, occ_date, status, xp)
+    values (${sub.id}, ${task.id}, ${me.id}, ${occ}, ${status}, ${sub.xp})
+    on conflict (subtask_id, occ_date) do nothing returning id`;
+  if (!sc) return false;
+  if (status === "approved") {
+    const shared = task.assignee_id === null;
+    await awardSubXp(shared ? [me.id, partner.id] : [me.id], sc.id, sub.xp, `${task.title} › ${sub.title}`, today);
   }
-  const occ = task.kind === "once" ? (task.due_date ?? today) : today;
-  const status = task.requires_approval && !shared ? "pending" : "approved";
-  const levelBefore = levelFromXp(await profileXp(me.id)).level;
+  return true;
+}
 
+async function pendingSubXp(taskId: number, occ: string): Promise<number> {
+  const [r] = await sql<{ n: number }[]>`
+    select coalesce(sum(xp), 0)::int as n from subtask_completions
+    where task_id = ${taskId} and occ_date = ${occ} and status = 'pending'`;
+  return r.n;
+}
+
+/**
+ * Ana görevin tamamlanma kaydını oluşturur ve sonrasını (bildirim, seviye, rozet, hedef) halleder.
+ * `earnedBefore`: bu işlemde alt görevlerden kazanılmış havuç (sonuç ekranında toplam gösterilir).
+ */
+async function finishTask(
+  me: Profile,
+  partner: Profile,
+  task: Task,
+  occ: string,
+  status: "pending" | "approved",
+  today: string,
+  levelBefore: number,
+  earnedBefore: number,
+): Promise<CompleteResult> {
+  const shared = task.assignee_id === null;
   const [c] = await sql<{ id: number }[]>`
     insert into completions (task_id, profile_id, occ_date, status, xp)
     values (${task.id}, ${me.id}, ${occ}, ${status}, ${task.xp})
     on conflict (task_id, occ_date) do nothing returning id`;
-  if (!c) return { status: "already", xp: 0, levelUp: null, badges: [], goalReached: false };
+  if (!c) return earnedBefore ? { ...NOTHING, status, xp: earnedBefore } : NOTHING;
 
-  const partner = await partnerOf(me.id);
   if (status === "pending") {
+    const total = task.xp + (await pendingSubXp(task.id, occ));
     notifyLater(partner.id, {
       title: `🙋 ${me.name} onayını bekliyor`,
-      body: `${task.emoji} ${task.title} — onaylarsan +${task.xp} 🥕 kazanacak`,
+      body: `${task.emoji} ${task.title} — onaylarsan +${total} 🥕 kazanacak`,
       url: "/#onay",
       tag: `approve-${c.id}`,
       actions: [
@@ -365,10 +435,11 @@ export async function completeTask(me: Profile, taskId: number): Promise<Complet
       ],
       token: await signAction("decide", partner.id, c.id),
     });
-    return { status, xp: task.xp, levelUp: null, badges: [], goalReached: false };
+    return { status, xp: total, levelUp: null, badges: [], goalReached: false, parentDone: true };
   }
 
   await awardXp(shared ? [me.id, partner.id] : [me.id], c.id, task.xp, task.title, today);
+  const total = earnedBefore + task.xp;
   if (shared) {
     notifyLater(partner.id, {
       title: `💞 ${me.name} ortak görevi bitirdi`,
@@ -382,7 +453,11 @@ export async function completeTask(me: Profile, taskId: number): Promise<Complet
       tag: `done-${c.id}`,
     });
   }
+  return { ...(await afterAward(me, partner, shared, today, levelBefore)), status, xp: total, parentDone: true };
+}
 
+/** Havuç verildikten sonra: seviye, rozet, ortak hedef */
+async function afterAward(me: Profile, partner: Profile, shared: boolean, today: string, levelBefore: number) {
   const levelAfter = levelFromXp(await profileXp(me.id)).level;
   const badges = await checkBadges(me.id, today);
   if (shared) await checkBadges(partner.id, today);
@@ -395,12 +470,71 @@ export async function completeTask(me: Profile, taskId: number): Promise<Complet
     });
   }
   return {
-    status,
-    xp: task.xp,
     levelUp: levelAfter > levelBefore ? levelAfter : null,
     badges: badges.map(({ emoji, name, description }) => ({ emoji, name, description })),
     goalReached,
   };
+}
+
+/**
+ * Görevi tamamlar. Alt görevleri varsa kalanların hepsini de işaretler
+ * (ör. bildirimdeki "Tamamla" butonu ya da karttaki "Hepsini bitir").
+ */
+export async function completeTask(me: Profile, taskId: number): Promise<CompleteResult> {
+  const today = todayStr();
+  const task = await checkCompletable(me, await getTask(taskId), today);
+  if (task.kind === "once") {
+    const prev = await sql`select 1 from completions where task_id = ${task.id} limit 1`;
+    if (prev.length) return NOTHING;
+  }
+  const occ = occFor(task, today);
+  const status = task.requires_approval && task.assignee_id !== null ? "pending" : "approved";
+  const partner = await partnerOf(me.id);
+  const levelBefore = levelFromXp(await profileXp(me.id)).level;
+
+  let earned = 0;
+  for (const sub of await loadSubtasks(task.id)) {
+    if (await insertSubCompletion(me, partner, task, sub, occ, status, today)) {
+      if (status === "approved") earned += sub.xp;
+    }
+  }
+  return finishTask(me, partner, task, occ, status, today, levelBefore, earned);
+}
+
+/** Tek bir alt görevi işaretler; hepsi bittiyse ana görevi de tamamlar. */
+export async function completeSubtask(me: Profile, subtaskId: number): Promise<CompleteResult> {
+  const today = todayStr();
+  const [sub] = await sql<Subtask[]>`
+    select id, task_id, title, xp, position from subtasks where id = ${subtaskId} and not archived`;
+  if (!sub) throw new Error("Alt görev bulunamadı");
+  const task = await checkCompletable(me, await getTask(sub.task_id), today);
+  const occ = occFor(task, today);
+  const status = task.requires_approval && task.assignee_id !== null ? "pending" : "approved";
+  const partner = await partnerOf(me.id);
+  const levelBefore = levelFromXp(await profileXp(me.id)).level;
+
+  if (!(await insertSubCompletion(me, partner, task, sub, occ, status, today))) return NOTHING;
+  const earned = status === "approved" ? sub.xp : 0;
+
+  const [left] = await sql<{ n: number }[]>`
+    select count(*)::int as n from subtasks s
+    where s.task_id = ${task.id} and not s.archived
+      and not exists (select 1 from subtask_completions sc where sc.subtask_id = s.id and sc.occ_date = ${occ})`;
+  if (left.n === 0) return finishTask(me, partner, task, occ, status, today, levelBefore, earned);
+
+  if (status === "pending") return { ...NOTHING, status, xp: sub.xp };
+  return { ...(await afterAward(me, partner, task.assignee_id === null, today, levelBefore)), status, xp: earned };
+}
+
+/** Yanlışlıkla işaretlenen alt görevi geri al (ana görev de tamamlanmamış sayılır). */
+export async function undoSubtask(me: Profile, subtaskId: number): Promise<void> {
+  const today = todayStr();
+  const [sc] = await sql<SubCompletion[]>`
+    delete from subtask_completions
+    where subtask_id = ${subtaskId} and profile_id = ${me.id}
+      and (completed_at at time zone 'Europe/Istanbul')::date >= ${addDays(today, -1)}::date
+    returning *`;
+  if (sc) await sql`delete from completions where task_id = ${sc.task_id} and occ_date = ${sc.occ_date}`;
 }
 
 /** Yanlışlıkla işaretlemeyi geri al (sadece kendi tamamlaman, bugün veya dün). */
@@ -408,20 +542,28 @@ export async function undoCompletion(me: Profile, taskId: number): Promise<void>
   const task = await getTask(taskId);
   if (!task) return;
   const today = todayStr();
-  await sql`
+  const since = addDays(today, -1);
+  const removed = await sql<{ occ_date: string }[]>`
     delete from completions
     where task_id = ${taskId} and profile_id = ${me.id}
-      and (completed_at at time zone 'Europe/Istanbul')::date >= ${addDays(today, -1)}::date`;
+      and (completed_at at time zone 'Europe/Istanbul')::date >= ${since}::date
+    returning occ_date`;
+  for (const r of removed) {
+    await sql`delete from subtask_completions
+              where task_id = ${taskId} and occ_date = ${r.occ_date} and profile_id = ${me.id}`;
+  }
 }
 
 export async function decideCompletion(me: Profile, completionId: number, approve: boolean) {
-  const [c] = await sql<(Completion & { title: string; emoji: string })[]>`
-    select c.*, t.title, t.emoji from completions c join tasks t on t.id = c.task_id
+  const [c] = await sql<(Completion & { title: string; emoji: string; assignee_id: number | null })[]>`
+    select c.*, t.title, t.emoji, t.assignee_id from completions c join tasks t on t.id = c.task_id
     where c.id = ${completionId} and c.status = 'pending'`;
   if (!c || c.profile_id === me.id) throw new Error("Onaylanacak görev bulunamadı");
   const today = todayStr();
 
   if (!approve) {
+    await sql`delete from subtask_completions
+              where task_id = ${c.task_id} and occ_date = ${c.occ_date} and status = 'pending'`;
     await sql`delete from completions where id = ${c.id}`;
     notifyLater(c.profile_id, {
       title: `↩️ ${me.name} görevi geri çevirdi`,
@@ -435,9 +577,20 @@ export async function decideCompletion(me: Profile, completionId: number, approv
   await sql`update completions set status = 'approved', decided_by = ${me.id}, decided_at = now()
             where id = ${c.id}`;
   await awardXp([c.profile_id], c.id, c.xp, c.title, today);
+  // Bu rutinin onay bekleyen alt görevleri de onaylanır
+  const subs = await sql<(SubCompletion & { sub_title: string })[]>`
+    update subtask_completions sc set status = 'approved'
+    from subtasks s
+    where s.id = sc.subtask_id and sc.task_id = ${c.task_id} and sc.occ_date = ${c.occ_date} and sc.status = 'pending'
+    returning sc.*, s.title as sub_title`;
+  let total = c.xp;
+  for (const sc of subs) {
+    await awardSubXp([sc.profile_id], sc.id, sc.xp, `${c.title} › ${sc.sub_title}`, today);
+    total += sc.xp;
+  }
   const levelAfter = levelFromXp(await profileXp(c.profile_id)).level;
   notifyLater(c.profile_id, {
-    title: `🎉 ${me.name} onayladı: +${c.xp} 🥕`,
+    title: `🎉 ${me.name} onayladı: +${total} 🥕`,
     body:
       `${c.emoji} ${c.title}` + (levelAfter > levelBefore ? ` — ve ${levelAfter}. seviyeye çıktın! ⬆️` : ""),
     tag: `approve-${c.id}`,

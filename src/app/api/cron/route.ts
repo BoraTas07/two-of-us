@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { allProfiles, signAction } from "@/lib/auth";
-import { activeTasks, completionFor, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
+import { activeTasks, completionFor, loadSubtasks, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
 import { setConfig } from "@/lib/db";
 import { cronKey, markSent, sendPush } from "@/lib/push";
 import { isDueOn } from "@/lib/recurrence";
@@ -40,6 +40,7 @@ export async function GET(req: Request) {
   const tasks = await activeTasks();
   const idx = indexCompletions(await loadCompletions(addDays(today, -1)), tasks);
   const sent: string[] = [];
+  const withSubs = new Set((await loadSubtasks()).map((x) => x.task_id));
 
   for (const p of profiles) {
     // Bugün yapılacaklar + tarihi geçmiş ya da tarihsiz, henüz bitmemiş tek seferlik görevler
@@ -63,7 +64,7 @@ export async function GET(req: Request) {
               : `Hatırlatma: bunu bitir, +${t.xp} 🥕 kap!`,
           url: `/gorevler/${t.id}`,
           tag: `task-${t.id}`,
-          actions: [{ action: "complete", title: "✓ Tamamla" }],
+          actions: [{ action: "complete", title: withSubs.has(t.id) ? "✓ Hepsini bitir" : "✓ Tamamla" }],
           token: await signAction("complete", p.id, t.id, 36 * 3600),
         });
         sent.push(`hatırlatma ${p.name}: ${t.title}`);

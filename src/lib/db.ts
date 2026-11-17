@@ -129,6 +129,31 @@ create table if not exists sent_log (
   created_at timestamptz not null default now()
 );
 
+create table if not exists subtasks (
+  id serial primary key,
+  task_id int not null references tasks(id) on delete cascade,
+  title text not null,
+  xp int not null default 5 check (xp >= 0),
+  position int not null default 0,
+  archived boolean not null default false
+);
+create index if not exists subtasks_task on subtasks (task_id);
+
+create table if not exists subtask_completions (
+  id serial primary key,
+  subtask_id int not null references subtasks(id) on delete cascade,
+  task_id int not null references tasks(id) on delete cascade,
+  profile_id int not null references profiles(id),
+  occ_date text not null,
+  status text not null check (status in ('pending', 'approved')),
+  xp int not null,
+  completed_at timestamptz not null default now(),
+  unique (subtask_id, occ_date)
+);
+
+alter table xp_events add column if not exists
+  subtask_completion_id int references subtask_completions(id) on delete cascade;
+
 create table if not exists rewards (
   id serial primary key,
   title text not null,

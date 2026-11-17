@@ -8,6 +8,8 @@ import {
   habitStreak,
   indexCompletions,
   loadCompletions,
+  loadSubCompletions,
+  loadSubtasks,
   relevantTo,
   todayComplete,
   weekProgress,
@@ -18,7 +20,7 @@ import {
 import { levelFromXp, type LevelInfo } from "./levels";
 import { describeRepeat, isDueOn } from "./recurrence";
 import { addDays, formatShort, todayStr, weekStart, weekday, WEEKDAYS_SHORT } from "./time";
-import type { Profile, Task } from "./types";
+import type { Profile, SubCompletion, Subtask, Task } from "./types";
 
 export type TaskItem = {
   id: number;
@@ -41,9 +43,19 @@ export type TaskItem = {
   canComplete: boolean;
   /** Tamamlayamıyorsa kısa açıklama */
   blockedReason: string | null;
+  subtasks: SubItem[];
 };
 
-type Viewer = { meId: number; partnerName: string };
+export type SubItem = {
+  id: number;
+  title: string;
+  xp: number;
+  done: null | { status: "pending" | "approved"; byId: number };
+};
+
+type SubState = { subs: Subtask[]; subDone: Map<string, SubCompletion> };
+
+type Viewer = { meId: number; partnerName: string; sub: SubState };
 
 /** Tekrarlı bir görevin bir sonraki günü: "Yarın", "Per", "17 Ara" */
 function nextDueText(t: Task, today: string): string | null {
@@ -90,6 +102,13 @@ function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskIt
     done: c ? { status: c.status, byId: c.profile_id } : null,
     canComplete: !c && blockedReason === null,
     blockedReason: c ? null : blockedReason,
+    subtasks: v.sub.subs
+      .filter((x) => x.task_id === t.id)
+      .map((x) => {
+        const occ = t.kind === "once" ? (t.due_date ?? t.start_date) : today;
+        const d = v.sub.subDone.get(`${x.id}|${occ}`);
+        return { id: x.id, title: x.title, xp: x.xp, done: d ? { status: d.status, byId: d.profile_id } : null };
+      }),
   };
 }
 
@@ -104,7 +123,11 @@ function showToday(t: Task, today: string, idx: CompletionIndex): boolean {
 export async function loadState(today = todayStr()) {
   const tasks = await activeTasks();
   const idx = indexCompletions(await loadCompletions(addDays(today, -400)), tasks);
-  return { tasks, idx, today };
+  const subDone = new Map(
+    (await loadSubCompletions(addDays(today, -1))).map((c) => [`${c.subtask_id}|${c.occ_date}`, c] as const),
+  );
+  const sub: SubState = { subs: await loadSubtasks(), subDone };
+  return { tasks, idx, today, sub };
 }
 
 export async function personSummary(
@@ -130,7 +153,7 @@ export async function todayView(me: Profile, partner: Profile) {
   const totals = await xpTotals();
 
   const visible = tasks.filter((t) => showToday(t, today, idx));
-  const v = { meId: me.id, partnerName: partner.name };
+  const v = { meId: me.id, partnerName: partner.name, sub: state.sub };
   const sortItems = (a: TaskItem, b: TaskItem) =>
     Number(!!a.done) - Number(!!b.done) ||
     Number(b.overdue) - Number(a.overdue) ||
@@ -146,7 +169,9 @@ export async function todayView(me: Profile, partner: Profile) {
   const pending = await sql<
     { id: number; title: string; emoji: string; xp: number; occ_date: string; completed_at: Date }[]
   >`
-    select c.id, t.title, t.emoji, c.xp, c.occ_date, c.completed_at
+    select c.id, t.title, t.emoji, c.occ_date, c.completed_at,
+      c.xp + coalesce((select sum(sc.xp) from subtask_completions sc
+        where sc.task_id = c.task_id and sc.occ_date = c.occ_date and sc.status = 'pending'), 0)::int as xp
     from completions c join tasks t on t.id = c.task_id
     where c.status = 'pending' and c.profile_id = ${partner.id}
     order by c.completed_at`;
@@ -167,8 +192,8 @@ export async function todayView(me: Profile, partner: Profile) {
 }
 
 export async function allTasksView(me: Profile, partner: Profile) {
-  const { tasks, idx, today } = await loadState();
-  const v = { meId: me.id, partnerName: partner.name };
+  const { tasks, idx, today, sub } = await loadState();
+  const v = { meId: me.id, partnerName: partner.name, sub };
   const items = tasks.map((t) => toItem(t, today, idx, v));
   const upcomingOnce = tasks
     .filter((t) => t.kind === "once" && !idx.once.get(t.id))
@@ -189,7 +214,7 @@ export async function allTasksView(me: Profile, partner: Profile) {
 
 /** Tek bir görevin kart verisi (görev detay sayfası için) */
 export async function taskItemView(me: Profile, partner: Profile, taskId: number): Promise<TaskItem | null> {
-  const { tasks, idx, today } = await loadState();
+  const { tasks, idx, today, sub } = await loadState();
   const t = tasks.find((x) => x.id === taskId);
-  return t ? toItem(t, today, idx, { meId: me.id, partnerName: partner.name }) : null;
+  return t ? toItem(t, today, idx, { meId: me.id, partnerName: partner.name, sub }) : null;
 }

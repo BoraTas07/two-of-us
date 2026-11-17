@@ -32,6 +32,7 @@ export default async function NewTaskPage() {
           days: [weekday(today)],
           dom: Number(today.slice(8, 10)),
           remind: "",
+          subtasks: [],
         }}
       />
     </>

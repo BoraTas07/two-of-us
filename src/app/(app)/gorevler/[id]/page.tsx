@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
-import { getTask } from "@/lib/game";
+import { getTask, loadSubtasks } from "@/lib/game";
 import { formatShort, todayStr, weekday } from "@/lib/time";
 import TaskForm from "@/components/task-form";
 import TaskCard from "@/components/task-card";
@@ -22,6 +22,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
     order by occ_date desc limit 14`;
   const creator = t.creator_id === me.id ? "Sen" : partner.name;
   const item = await taskItemView(me, partner, t.id);
+  const subs = await loadSubtasks(t.id);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -81,6 +82,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
           days: t.repeat_days.length ? t.repeat_days : [weekday(today)],
           dom: t.repeat_dom ?? Number(today.slice(8, 10)),
           remind: t.remind_time ?? "",
+          subtasks: subs.map((x) => ({ id: x.id, key: `s${x.id}`, title: x.title, xp: x.xp })),
         }}
       />
       )}

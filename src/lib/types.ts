@@ -55,3 +55,22 @@ export type ColorName = keyof typeof COLORS;
 export function colorOf(name: string) {
   return COLORS[name as ColorName] ?? COLORS.clay;
 }
+
+export type Subtask = {
+  id: number;
+  task_id: number;
+  title: string;
+  xp: number;
+  position: number;
+};
+
+export type SubCompletion = {
+  id: number;
+  subtask_id: number;
+  task_id: number;
+  profile_id: number;
+  occ_date: string;
+  status: "pending" | "approved";
+  xp: number;
+  completed_at: Date;
+};

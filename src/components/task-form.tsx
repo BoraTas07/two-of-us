@@ -21,6 +21,7 @@ export type TaskFormValues = {
   days: number[];
   dom: number;
   remind: string;
+  subtasks: { id?: number; key: string; title: string; xp: number }[];
 };
 
 function Label({ children, hint }: { children: React.ReactNode; hint?: string }) {
@@ -45,6 +46,17 @@ export default function TaskForm({
   const [v, setV] = useState(initial);
   const [archiving, startArchive] = useTransition();
   const set = <K extends keyof TaskFormValues>(k: K, val: TaskFormValues[K]) => setV((s) => ({ ...s, [k]: val }));
+  const setSub = (i: number, patch: Partial<TaskFormValues["subtasks"][number]>) =>
+    setV((s) => ({ ...s, subtasks: s.subtasks.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
+  const moveSub = (i: number, d: number) =>
+    setV((s) => {
+      const list = [...s.subtasks];
+      const j = i + d;
+      if (j < 0 || j >= list.length) return s;
+      [list[i], list[j]] = [list[j], list[i]];
+      return { ...s, subtasks: list };
+    });
+  const subSum = v.subtasks.reduce((n, x) => n + (x.title.trim() ? x.xp : 0), 0);
 
   return (
     <form action={action} className="space-y-5">
@@ -203,10 +215,82 @@ export default function TaskForm({
       </div>
 
       <div>
-        <Label hint="Kaydır ya da sayıyı yaz (1–200). Büyük işlere daha çok havuç ver.">
-          Kaç havuç kazandırsın?
+        <Label hint="Ör. gece rutini → diş fırçala, cilt bakımı, yarının kıyafetini hazırla. Her adımın kendi havucu olur.">
+          Alt görevler (isteğe bağlı)
         </Label>
-        <CarrotSlider name="xp" value={v.xp} onChange={(n) => set("xp", n)} />
+        {v.subtasks.length > 0 && (
+          <ul className="card mb-2 divide-y divide-line">
+            {v.subtasks.map((x, i) => (
+              <li key={x.key} className="flex items-center gap-2 p-2.5">
+                <input type="hidden" name="sub_id" value={x.id ?? ""} />
+                <span className="w-5 text-center text-xs font-semibold text-muted">{i + 1}</span>
+                <input
+                  className="input min-w-0 flex-1 px-3 py-2"
+                  name="sub_title"
+                  value={x.title}
+                  onChange={(e) => setSub(i, { title: e.target.value })}
+                  placeholder="Adım adı"
+                  maxLength={60}
+                  aria-label={`${i + 1}. adım`}
+                />
+                <span className="text-sm" aria-hidden>
+                  🥕
+                </span>
+                <input
+                  className="input w-16 px-2 py-2 text-center"
+                  name="sub_xp"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={200}
+                  value={x.xp || ""}
+                  onChange={(e) => setSub(i, { xp: Math.max(0, Math.min(200, Math.round(Number(e.target.value) || 0))) })}
+                  aria-label={`${i + 1}. adımın havucu`}
+                />
+                <button
+                  type="button"
+                  onClick={() => moveSub(i, -1)}
+                  disabled={i === 0}
+                  className="px-1 text-muted disabled:opacity-30"
+                  aria-label="Yukarı taşı"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set("subtasks", v.subtasks.filter((_, j) => j !== i))}
+                  className="px-1 text-danger"
+                  aria-label="Adımı sil"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          type="button"
+          className="btn w-full bg-surface text-sm text-ink"
+          onClick={() =>
+            set("subtasks", [...v.subtasks, { key: `n${Date.now()}`, title: "", xp: 5 }])
+          }
+        >
+          + Alt görev ekle
+        </button>
+      </div>
+
+      <div>
+        {v.subtasks.length > 0 ? (
+          <Label hint={`Adımlardan ${subSum} 🥕 gelir. Hepsini bitirince ayrıca bu bonus verilir (0 olabilir).`}>
+            Hepsini bitirme bonusu
+          </Label>
+        ) : (
+          <Label hint="Kaydır ya da sayıyı yaz (1–200). Büyük işlere daha çok havuç ver.">Kaç havuç kazandırsın?</Label>
+        )}
+        <CarrotSlider name="xp" value={v.xp} onChange={(n) => set("xp", n)} allowZero={v.subtasks.length > 0} />
+        {v.subtasks.length > 0 && (
+          <p className="mt-1.5 px-1 text-xs font-semibold text-muted">Toplam: {subSum + v.xp} 🥕</p>
+        )}
       </div>
 
       {v.who !== "both" && (

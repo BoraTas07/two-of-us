@@ -10,6 +10,8 @@ export type CelebrateDetail = {
   badges?: { emoji: string; name: string; description: string }[];
   /** Genel bilgi penceresi (ör. mağazadan alışveriş) */
   notice?: { emoji: string; title: string; body: string };
+  /** Sadece "+n 🥕" yazısı, konfeti yok (ör. tek bir alt adım) */
+  quiet?: boolean;
   goalReached?: boolean;
   x?: number;
   y?: number;
@@ -38,7 +40,7 @@ export default function Celebration() {
         setFloats((f) => [...f, { id, text: d.pending ? "⏳ Onay bekliyor" : `+${d.xp} 🥕`, x, y }]);
         setTimeout(() => setFloats((f) => f.filter((i) => i.id !== id)), 1200);
       }
-      if (!d.pending && d.xp && !reduce) {
+      if (!d.pending && d.xp && !reduce && !d.quiet) {
         confetti({
           particleCount: 28,
           spread: 55,

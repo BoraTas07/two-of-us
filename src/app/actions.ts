@@ -5,11 +5,13 @@ import { redirect } from "next/navigation";
 import { allProfiles, endSession, hashPin, requireUser, startSession, verifyPin } from "@/lib/auth";
 import { ensureSchema, setConfig, sql } from "@/lib/db";
 import {
+  completeSubtask,
   completeTask,
   decideCompletion,
   getTask,
   notifyLater,
   undoCompletion,
+  undoSubtask,
   type CompleteResult,
 } from "@/lib/game";
 import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
@@ -130,9 +132,24 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
   if (!["once", "recurring", "habit"].includes(kind)) return { error: "Görev tipi seç." };
   const who = String(form.get("who"));
   const assignee = who === "me" ? me.id : who === "partner" ? partner.id : null;
+  // Alt görevler (formda sıralı listeler halinde gelir)
+  const subIds = form.getAll("sub_id").map((v) => Number(v) || 0);
+  const subTitles = form.getAll("sub_title").map((v) => String(v).trim().slice(0, 60));
+  const subXps = form.getAll("sub_xp").map((v) => Number(v));
+  const subs = subTitles
+    .map((t, i) => ({ id: subIds[i] ?? 0, title: t, xp: subXps[i] }))
+    .filter((x) => x.title);
+  if (subs.length > 20) return { error: "En fazla 20 alt görev ekleyebilirsin." };
+  for (const x of subs) {
+    if (!Number.isInteger(x.xp) || x.xp < MIN_CARROTS || x.xp > MAX_CARROTS)
+      return { error: `"${x.title}" için havuç ${MIN_CARROTS} ile ${MAX_CARROTS} arasında olmalı.` };
+  }
+
   const xpRaw = Number(form.get("xp"));
-  if (!Number.isInteger(xpRaw) || xpRaw < MIN_CARROTS || xpRaw > MAX_CARROTS)
-    return { error: `Havuç ${MIN_CARROTS} ile ${MAX_CARROTS} arasında olmalı.` };
+  // Alt görevi olan görevde ana değer "hepsini bitirme bonusu"dur ve 0 olabilir
+  const minXp = subs.length ? 0 : MIN_CARROTS;
+  if (!Number.isInteger(xpRaw) || xpRaw < minXp || xpRaw > MAX_CARROTS)
+    return { error: `Havuç ${minXp} ile ${MAX_CARROTS} arasında olmalı.` };
   const xp = xpRaw;
   const requiresApproval = assignee !== null && form.get("approval") === "on";
   const remind = String(form.get("remind") ?? "");
@@ -169,16 +186,20 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
         due_date = ${dueDate}, repeat = ${repeat}, repeat_days = ${repeatDays}::int[],
         repeat_dom = ${repeatDom}, remind_time = ${remindTime}
       where id = ${id}`;
+    await saveSubtasks(id, subs);
   } else {
-    await sql`
+    const [created] = await sql<{ id: number }[]>`
       insert into tasks (title, emoji, notes, kind, creator_id, assignee_id, xp, requires_approval,
                          due_date, repeat, repeat_days, repeat_dom, remind_time, start_date)
       values (${title}, ${emoji}, ${notes}, ${kind}, ${me.id}, ${assignee}, ${xp}, ${requiresApproval},
-              ${dueDate}, ${repeat}, ${repeatDays}::int[], ${repeatDom}, ${remindTime}, ${todayStr()})`;
+              ${dueDate}, ${repeat}, ${repeatDays}::int[], ${repeatDom}, ${remindTime}, ${todayStr()})
+      returning id`;
+    await saveSubtasks(created.id, subs);
     if (assignee !== me.id) {
+      const total = xp + subs.reduce((n, x) => n + x.xp, 0);
       notifyLater(partner.id, {
         title: assignee === null ? `💞 ${me.name} ortak görev ekledi` : `📝 ${me.name} sana görev verdi`,
-        body: `${emoji} ${title} (+${xp} 🥕)`,
+        body: `${emoji} ${title}${subs.length ? ` · ${subs.length} adım` : ""} (+${total} 🥕)`,
         url: "/",
         tag: `new-task`,
       });
@@ -186,6 +207,40 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
   }
   refresh();
   redirect("/gorevler");
+}
+
+/** Alt görev listesini kaydeder: var olanları günceller, yenileri ekler, çıkarılanları arşivler. */
+async function saveSubtasks(taskId: number, subs: { id: number; title: string; xp: number }[]) {
+  const existing = await sql<{ id: number }[]>`select id from subtasks where task_id = ${taskId} and not archived`;
+  const keep = new Set<number>();
+  for (const [i, x] of subs.entries()) {
+    if (x.id && existing.some((e) => e.id === x.id)) {
+      keep.add(x.id);
+      await sql`update subtasks set title = ${x.title}, xp = ${x.xp}, position = ${i} where id = ${x.id}`;
+    } else {
+      await sql`insert into subtasks (task_id, title, xp, position) values (${taskId}, ${x.title}, ${x.xp}, ${i})`;
+    }
+  }
+  for (const e of existing) {
+    if (!keep.has(e.id)) await sql`update subtasks set archived = true where id = ${e.id}`;
+  }
+}
+
+export async function completeSubtaskAction(subtaskId: number): Promise<CompleteResult | { error: string }> {
+  const { me } = await requireUser();
+  try {
+    const r = await completeSubtask(me, subtaskId);
+    refresh();
+    return r;
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+export async function undoSubtaskAction(subtaskId: number) {
+  const { me } = await requireUser();
+  await undoSubtask(me, subtaskId);
+  refresh();
 }
 
 export async function archiveTaskAction(id: number) {

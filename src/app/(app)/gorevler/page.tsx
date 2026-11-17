@@ -84,7 +84,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             {g.items.length ? (
               <div className="space-y-2">
                 {g.items.map((t) => (
-                  <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} />
+                  <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} subsOpen={false} />
                 ))}
               </div>
             ) : (
