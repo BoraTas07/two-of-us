@@ -19,6 +19,13 @@ function createClient() {
     idle_timeout: 20,
     // Veritabanına ulaşılamazsa sonsuza dek bekleme
     connect_timeout: 10,
+    // Supabase'in bağlantı havuzu (Supavisor, 6543) aynı bağlantıda art arda gönderilen
+    // sorgulara yanıt vermeden takılabiliyor; her bağlantıda tek sorgu.
+    max_pipeline: local ? 100 : 1,
+    // Yedek güvenlik: havuz/sunucu sessiz kalırsa sorgu en geç 25 sn'de hata verir,
+    // bağlantı kapatılıp yeniden açılır (sayfa asılı kalmaz).
+    query_timeout: 25,
+    queue_timeout: 20,
     onnotice: () => {},
   });
 }
@@ -270,7 +277,7 @@ async function migrate(): Promise<void> {
     if ((e as { code?: string }).code !== "42P01") throw e;
   }
   await sql.begin(async (tx) => {
-    await txGuard(tx, 30);
+    await txGuard(tx, 20);
     await tx.unsafe(SCHEMA).simple();
     await tx`insert into app_config (key, value) values ('schema_version', ${SCHEMA_VERSION})
              on conflict (key) do update set value = excluded.value`;
