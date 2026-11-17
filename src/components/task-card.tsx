@@ -72,6 +72,7 @@ export default function TaskCard({
 
   const meta: React.ReactNode[] = [];
   if (item.overdue) meta.push(<span key="o" className="chip bg-danger-soft text-danger">Gecikti</span>);
+  if (item.objected) meta.push(<span key="x" className="chip bg-warn-soft text-xp-ink">⚖️ İtiraz var</span>);
   if (item.kind === "habit")
     meta.push(
       <span key="h" className="chip bg-brand-soft text-brand-dark">

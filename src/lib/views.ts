@@ -18,6 +18,7 @@ import {
   type CompletionIndex,
 } from "./game";
 import { levelFromXp, type LevelInfo } from "./levels";
+import { openObjectionTaskIds } from "./objections";
 import { describeRepeat, isDueOn } from "./recurrence";
 import { addDays, formatShort, todayStr, weekStart, weekday, WEEKDAYS_SHORT } from "./time";
 import type { Profile, SubCompletion, Subtask, Task } from "./types";
@@ -44,6 +45,8 @@ export type TaskItem = {
   /** Tamamlayamıyorsa kısa açıklama */
   blockedReason: string | null;
   subtasks: SubItem[];
+  /** Cevap bekleyen bir itiraz var mı */
+  objected: boolean;
 };
 
 export type SubItem = {
@@ -53,7 +56,7 @@ export type SubItem = {
   done: null | { status: "pending" | "approved"; byId: number };
 };
 
-type SubState = { subs: Subtask[]; subDone: Map<string, SubCompletion> };
+type SubState = { subs: Subtask[]; subDone: Map<string, SubCompletion>; objected: Set<number> };
 
 type Viewer = { meId: number; partnerName: string; sub: SubState };
 
@@ -102,6 +105,7 @@ function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskIt
     done: c ? { status: c.status, byId: c.profile_id } : null,
     canComplete: !c && blockedReason === null,
     blockedReason: c ? null : blockedReason,
+    objected: v.sub.objected.has(t.id),
     subtasks: v.sub.subs
       .filter((x) => x.task_id === t.id)
       .map((x) => {
@@ -126,7 +130,7 @@ export async function loadState(today = todayStr()) {
   const subDone = new Map(
     (await loadSubCompletions(addDays(today, -1))).map((c) => [`${c.subtask_id}|${c.occ_date}`, c] as const),
   );
-  const sub: SubState = { subs: await loadSubtasks(), subDone };
+  const sub: SubState = { subs: await loadSubtasks(), subDone, objected: await openObjectionTaskIds() };
   return { tasks, idx, today, sub };
 }
 

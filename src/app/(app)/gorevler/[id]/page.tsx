@@ -7,6 +7,8 @@ import { formatShort, todayStr, weekday } from "@/lib/time";
 import TaskForm from "@/components/task-form";
 import TaskCard from "@/components/task-card";
 import { taskItemView } from "@/lib/views";
+import { objectionsFor } from "@/lib/objections";
+import ObjectionPanel from "@/components/objection-panel";
 
 export const metadata = { title: "Görev — Two Of Us" };
 
@@ -23,6 +25,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
   const creator = t.creator_id === me.id ? "Sen" : partner.name;
   const item = await taskItemView(me, partner, t.id);
   const subs = await loadSubtasks(t.id);
+  const objections = await objectionsFor(t.id);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -44,6 +47,18 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
         <div className="mb-5">
           <TaskCard item={item} me={people.me} partner={people.partner} today={today} />
           {t.notes && <p className="card mt-2 p-4 text-sm whitespace-pre-wrap">{t.notes}</p>}
+          <div className="mt-2">
+            <ObjectionPanel
+              taskId={t.id}
+              isCreator={t.creator_id === me.id}
+              currentXp={t.xp}
+              hasSubtasks={subs.length > 0}
+              open={objections.open}
+              last={objections.last}
+              meId={me.id}
+              partnerName={partner.name}
+            />
+          </div>
         </div>
       )}
 
@@ -62,7 +77,8 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
 
       {t.creator_id !== me.id ? (
         <p className="card p-4 text-sm font-semibold text-muted">
-          🔒 Bu görevi {partner.name} oluşturdu. Sadece o değiştirebilir ya da silebilir.
+          🔒 Bu görevi {partner.name} oluşturdu. Sadece o değiştirebilir ya da silebilir; katılmıyorsan yukarıdan
+          itiraz edebilirsin.
         </p>
       ) : (
       <TaskForm

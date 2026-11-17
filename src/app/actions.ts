@@ -16,6 +16,7 @@ import {
 } from "@/lib/game";
 import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
 import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/shop";
+import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -358,6 +359,37 @@ export async function buyRewardAction(id: number) {
 export async function fulfillAction(purchaseId: number) {
   const { me } = await requireUser();
   const err = await fulfillPurchase(me, purchaseId);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- itirazlar
+
+export async function objectAction(_: FormState, form: FormData): Promise<FormState> {
+  const { me } = await requireUser();
+  const kind = form.get("kind") === "amount" ? "amount" : "task";
+  const proposedRaw = form.get("proposed");
+  const err = await createObjection(me, {
+    taskId: Number(form.get("taskId")),
+    kind,
+    reason: String(form.get("reason") ?? ""),
+    proposed: kind === "amount" && proposedRaw !== null && proposedRaw !== "" ? Number(proposedRaw) : null,
+  });
+  if (err) return { error: err };
+  refresh();
+  return { ok: "İtirazın iletildi ⚖️" };
+}
+
+export async function withdrawObjectionAction(id: number) {
+  const { me } = await requireUser();
+  const err = await withdrawObjection(me, id);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function resolveObjectionAction(id: number, accept: boolean, note: string) {
+  const { me } = await requireUser();
+  const err = await resolveObjection(me, id, accept, note);
   refresh();
   return err ? { error: err } : { ok: true };
 }

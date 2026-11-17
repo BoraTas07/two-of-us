@@ -154,6 +154,21 @@ create table if not exists subtask_completions (
 alter table xp_events add column if not exists
   subtask_completion_id int references subtask_completions(id) on delete cascade;
 
+create table if not exists objections (
+  id serial primary key,
+  task_id int not null references tasks(id) on delete cascade,
+  by_id int not null references profiles(id),
+  kind text not null check (kind in ('task', 'amount')),
+  reason text not null default '',
+  proposed_xp int,
+  old_xp int,
+  status text not null default 'acik' check (status in ('acik', 'kabul', 'red', 'geri')),
+  response text not null default '',
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz
+);
+create index if not exists objections_task on objections (task_id);
+
 create table if not exists rewards (
   id serial primary key,
   title text not null,

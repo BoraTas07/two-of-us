@@ -9,6 +9,7 @@ import PushBanner from "@/components/push-banner";
 import NudgeButton from "@/components/nudge-button";
 import { colorOf } from "@/lib/types";
 import { pendingRewardCounts } from "@/lib/shop";
+import { objectionsToAnswer } from "@/lib/objections";
 
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
@@ -22,6 +23,7 @@ export default async function TodayPage() {
   const { me, partner } = await requireUser();
   const v = await todayView(me, partner);
   const rewards = await pendingRewardCounts(me.id);
+  const toAnswer = await objectionsToAnswer(me.id);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -62,6 +64,20 @@ export default async function TodayPage() {
       </div>
 
       <PushBanner />
+
+      {toAnswer.map((o) => (
+        <Link key={o.id} href={`/gorevler/${o.task_id}`} className="card mt-3 flex items-center gap-3 bg-warn-soft p-3">
+          <span className="text-3xl">⚖️</span>
+          <div className="min-w-0 flex-1">
+            <div className="font-black">{partner.name} itiraz etti</div>
+            <div className="truncate text-sm font-semibold text-muted">
+              {o.emoji} {o.title} ·{" "}
+              {o.kind === "amount" ? `${o.old_xp} yerine ${o.proposed_xp} 🥕 öneriyor` : "görevin kendisine"}
+            </div>
+          </div>
+          <span className="font-black text-brand">›</span>
+        </Link>
+      ))}
 
       {rewards.toFulfill > 0 && (
         <Link href="/magaza" className="card mt-3 flex items-center gap-3 bg-rose-soft p-3">
