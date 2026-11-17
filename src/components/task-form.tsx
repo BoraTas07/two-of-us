@@ -16,6 +16,7 @@ export type TaskFormValues = {
   who: "me" | "partner" | "both";
   xp: number;
   approval: boolean;
+  photo: boolean;
   due: string;
   repeat: "daily" | "weekly" | "monthly";
   days: number[];
@@ -306,6 +307,23 @@ export default function TaskForm({
             <div className="font-black">🤝 Partner onayı gereksin</div>
             <div className="text-xs font-semibold text-muted">
               {v.who === "me" ? partnerName : "Sen"} onaylayınca havuçlar verilir. Kapalıysa güvene dayalı, havuçlar hemen gelir.
+            </div>
+          </div>
+        </label>
+      )}
+      {v.who !== "both" && v.approval && (
+        <label className="card flex cursor-pointer items-center gap-3 p-4">
+          <input
+            type="checkbox"
+            name="photo"
+            checked={v.photo}
+            onChange={(e) => set("photo", e.target.checked)}
+            className="h-6 w-6 accent-[var(--brand)]"
+          />
+          <div className="flex-1">
+            <div className="font-black">📷 Fotoğraf kanıtı iste</div>
+            <div className="text-xs font-semibold text-muted">
+              Tamamlayan kişi fotoğraf göndermeden onaylanamaz. Fotoğraf tek gösterimlik: bir kez açılır, sonra silinir.
             </div>
           </div>
         </label>

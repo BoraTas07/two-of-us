@@ -332,6 +332,10 @@ export type CompleteResult = {
   goalReached: boolean;
   /** Alt görev işaretlendiyse: ana görev de bu işlemle tamamlandı mı? */
   parentDone?: boolean;
+  /** Ana görevin tamamlanma kaydı (onay bekleyende kanıt fotoğrafı eklemek için) */
+  completionId?: number;
+  /** Görev kanıt fotoğrafı istiyor mu */
+  requiresPhoto?: boolean;
 };
 
 const NOTHING: CompleteResult = { status: "already", xp: 0, levelUp: null, badges: [], goalReached: false };
@@ -443,13 +447,26 @@ async function finishTask(
       body: `${task.emoji} ${task.title} — onaylarsan +${total} 🥕 kazanacak`,
       url: "/#onay",
       tag: `approve-${c.id}`,
-      actions: [
-        { action: "approve", title: "✓ Onayla" },
-        { action: "reject", title: "↩ Geri çevir" },
-      ],
-      token: await signAction("decide", partner.id, c.id),
+      ...(task.requires_photo
+        ? {}
+        : {
+            actions: [
+              { action: "approve", title: "✓ Onayla" },
+              { action: "reject", title: "↩ Geri çevir" },
+            ],
+            token: await signAction("decide", partner.id, c.id),
+          }),
     });
-    return { status, xp: total, levelUp: null, badges: [], goalReached: false, parentDone: true };
+    return {
+      status,
+      xp: total,
+      levelUp: null,
+      badges: [],
+      goalReached: false,
+      parentDone: true,
+      completionId: c.id,
+      requiresPhoto: task.requires_photo,
+    };
   }
 
   await awardXp(shared ? [me.id, partner.id] : [me.id], c.id, task.xp, task.title, today);
@@ -569,11 +586,18 @@ export async function undoCompletion(me: Profile, taskId: number): Promise<void>
 }
 
 export async function decideCompletion(me: Profile, completionId: number, approve: boolean) {
-  const [c] = await sql<(Completion & { title: string; emoji: string; assignee_id: number | null })[]>`
-    select c.*, t.title, t.emoji, t.assignee_id from completions c join tasks t on t.id = c.task_id
+  const [c] = await sql<
+    (Completion & { title: string; emoji: string; assignee_id: number | null; requires_photo: boolean; has_photo: boolean })[]
+  >`
+    select c.*, t.title, t.emoji, t.assignee_id, t.requires_photo,
+      exists(select 1 from photos p where p.completion_id = c.id) as has_photo
+    from completions c join tasks t on t.id = c.task_id
     where c.id = ${completionId} and c.status = 'pending'`;
   if (!c || c.profile_id === me.id) throw new Error("Onaylanacak görev bulunamadı");
+  if (approve && c.requires_photo && !c.has_photo) throw new Error("Kanıt fotoğrafı bekleniyor; fotoğraf gelince onaylayabilirsin.");
   const today = todayStr();
+  // Karar verildiği anda fotoğraf (görülmemiş olsa bile) silinir
+  await sql`update photos set data = null where completion_id = ${c.id}`;
 
   if (!approve) {
     await sql`delete from subtask_completions

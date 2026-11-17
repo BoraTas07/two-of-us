@@ -201,6 +201,18 @@ create table if not exists purchases (
 -- Widget bağlantısı: değiştirilince eski widget bağlantıları geçersiz olur
 alter table profiles add column if not exists widget_nonce text;
 
+-- Onaylı görevler için tek gösterimlik kanıt fotoğrafı
+alter table tasks add column if not exists requires_photo boolean not null default false;
+
+create table if not exists photos (
+  completion_id int primary key references completions(id) on delete cascade,
+  uploader_id int not null references profiles(id),
+  mime text not null,
+  data bytea,
+  created_at timestamptz not null default now(),
+  viewed_at timestamptz
+);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -214,7 +226,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "7";
+const SCHEMA_VERSION = "8";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {

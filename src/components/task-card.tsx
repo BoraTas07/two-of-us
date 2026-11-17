@@ -8,6 +8,7 @@ import { SHARED_COLOR, colorOf } from "@/lib/types";
 import type { SubItem, TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
 import { CarrotChip } from "./ui";
+import { PhotoSheet } from "./photo";
 
 type Person = { id: number; name: string; emoji: string; color: string };
 
@@ -28,6 +29,8 @@ export default function TaskCard({
   const [isPending, start] = useTransition();
   const [done, setDone] = useOptimistic(item.done);
   const [error, setError] = useState<string | null>(null);
+  // Kanıt fotoğrafı penceresi: açık olduğu tamamlama kaydı
+  const [photoFor, setPhotoFor] = useState<number | null>(null);
   const c = item.shared ? SHARED_COLOR : colorOf(item.assigneeId === me.id ? me.color : partner.color);
   const mineDone = !!done && done.byId === me.id;
   const doneBy = done ? (done.byId === me.id ? me : partner) : null;
@@ -57,6 +60,7 @@ export default function TaskCard({
         badges: r.badges,
         goalReached: r.goalReached,
       });
+      if (r.status === "pending" && r.completionId) setPhotoFor(r.completionId);
     });
   }
 
@@ -85,7 +89,11 @@ export default function TaskCard({
     meta.push(<span key="d" className="chip bg-line text-muted">📅 {formatRelative(item.dueDate, today)}</span>);
   if (item.remindTime) meta.push(<span key="t" className="chip bg-ice-soft text-ice-ink">⏰ {item.remindTime}</span>);
   if (item.requiresApproval && !item.shared)
-    meta.push(<span key="a" className="chip bg-line text-ink">🤝 Onaylı</span>);
+    meta.push(
+      <span key="a" className="chip bg-line text-ink">
+        🤝 Onaylı{item.requiresPhoto ? " · 📷" : ""}
+      </span>,
+    );
   if (!item.shared && item.creatorId !== item.assigneeId) {
     const giver = item.creatorId === me.id ? me : partner;
     meta.push(
@@ -157,6 +165,32 @@ export default function TaskCard({
         </Link>
         <div className="shrink-0">{action}</div>
       </div>
+      {done?.status === "pending" && mineDone && item.completionId && (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-bg px-3 py-2 text-xs font-semibold">
+          {item.photo === "viewed" ? (
+            <span className="text-sage-ink">📷 Fotoğrafın görüldü ve silindi</span>
+          ) : item.photo === "sent" ? (
+            <span className="text-muted">📷 Fotoğraf gönderildi · henüz açılmadı</span>
+          ) : (
+            <>
+              <span className={item.requiresPhoto ? "text-danger" : "text-muted"}>
+                {item.requiresPhoto ? "📷 Bu görev fotoğraf istiyor" : "📷 Kanıt fotoğrafı ekleyebilirsin"}
+              </span>
+              <button className="btn bg-brand px-3 py-1.5 text-xs text-white" onClick={() => setPhotoFor(item.completionId)}>
+                Fotoğraf ekle
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      {photoFor && (
+        <PhotoSheet
+          completionId={photoFor}
+          title={item.title}
+          required={item.requiresPhoto}
+          onClose={() => setPhotoFor(null)}
+        />
+      )}
       {subCount > 0 && (
         <details className="group mt-2" open={subsOpen}>
           <summary className="cursor-pointer list-none px-1 text-xs font-semibold text-muted">
@@ -172,6 +206,7 @@ export default function TaskCard({
                 partner={partner}
                 canCheck={item.canComplete}
                 needsApproval={item.requiresApproval && !item.shared}
+                onPending={(id) => setPhotoFor(id)}
                 blocked={item.blockedReason}
                 onError={setError}
               />
@@ -197,12 +232,14 @@ function SubRow({
   needsApproval,
   blocked,
   onError,
+  onPending,
 }: {
   sub: SubItem;
   me: Person;
   partner: Person;
   canCheck: boolean;
   needsApproval: boolean;
+  onPending: (completionId: number) => void;
   blocked: string | null;
   onError: (e: string | null) => void;
 }) {
@@ -239,6 +276,7 @@ function SubRow({
         badges: r.badges,
         goalReached: r.goalReached,
       });
+      if (r.parentDone && r.status === "pending" && r.completionId) onPending(r.completionId);
     });
   }
 

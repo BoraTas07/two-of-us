@@ -19,6 +19,7 @@ import {
 } from "./game";
 import { levelFromXp, type LevelInfo } from "./levels";
 import { openObjectionTaskIds } from "./objections";
+import { photoStates, type PhotoState } from "./photos";
 import { describeRepeat, isDueOn } from "./recurrence";
 import { addDays, formatShort, todayStr, weekStart, weekday, WEEKDAYS_SHORT } from "./time";
 import type { Profile, SubCompletion, Subtask, Task } from "./types";
@@ -47,6 +48,10 @@ export type TaskItem = {
   subtasks: SubItem[];
   /** Cevap bekleyen bir itiraz var mı */
   objected: boolean;
+  requiresPhoto: boolean;
+  /** Bugünkü (ya da tek seferlik) tamamlamanın id'si ve kanıt fotoğrafı durumu */
+  completionId: number | null;
+  photo: PhotoState;
 };
 
 export type SubItem = {
@@ -56,7 +61,12 @@ export type SubItem = {
   done: null | { status: "pending" | "approved"; byId: number };
 };
 
-type SubState = { subs: Subtask[]; subDone: Map<string, SubCompletion>; objected: Set<number> };
+type SubState = {
+  subs: Subtask[];
+  subDone: Map<string, SubCompletion>;
+  objected: Set<number>;
+  photos: Map<number, PhotoState>;
+};
 
 type Viewer = { meId: number; partnerName: string; sub: SubState };
 
@@ -106,6 +116,9 @@ function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskIt
     canComplete: !c && blockedReason === null,
     blockedReason: c ? null : blockedReason,
     objected: v.sub.objected.has(t.id),
+    requiresPhoto: t.requires_photo,
+    completionId: c?.id ?? null,
+    photo: c ? (v.sub.photos.get(c.id) ?? null) : null,
     subtasks: v.sub.subs
       .filter((x) => x.task_id === t.id)
       .map((x) => {
@@ -130,7 +143,13 @@ export async function loadState(today = todayStr()) {
   const subDone = new Map(
     (await loadSubCompletions(addDays(today, -1))).map((c) => [`${c.subtask_id}|${c.occ_date}`, c] as const),
   );
-  const sub: SubState = { subs: await loadSubtasks(), subDone, objected: await openObjectionTaskIds() };
+  const pendingIds = idx.all.filter((c) => c.status === "pending").map((c) => c.id);
+  const sub: SubState = {
+    subs: await loadSubtasks(),
+    subDone,
+    objected: await openObjectionTaskIds(),
+    photos: await photoStates(pendingIds),
+  };
   return { tasks, idx, today, sub };
 }
 
@@ -171,13 +190,15 @@ export async function todayView(me: Profile, partner: Profile) {
     .sort(sortItems);
 
   const pending = await sql<
-    { id: number; title: string; emoji: string; xp: number; occ_date: string; completed_at: Date }[]
+    { id: number; title: string; emoji: string; xp: number; occ_date: string; completed_at: Date; requires_photo: boolean; photo: PhotoState }[]
   >`
-    select c.id, t.title, t.emoji, c.occ_date, c.completed_at,
+    select c.id, t.title, t.emoji, c.occ_date, c.completed_at, t.requires_photo,
+      (select case when p.viewed_at is not null then 'viewed' else 'sent' end
+         from photos p where p.completion_id = c.id) as photo,
       c.xp + coalesce((select sum(sc.xp) from subtask_completions sc
         where sc.task_id = c.task_id and sc.occ_date = c.occ_date and sc.status = 'pending'), 0)::int as xp
     from completions c join tasks t on t.id = c.task_id
-    where c.status = 'pending' and c.profile_id = ${partner.id}
+    where c.status = 'pending' and c.profile_id = ${partner.id} and not t.archived
     order by c.completed_at`;
 
   const week = weekStart(today);

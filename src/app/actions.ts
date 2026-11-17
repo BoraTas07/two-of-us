@@ -155,6 +155,7 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
     return { error: `Havuç ${minXp} ile ${MAX_CARROTS} arasında olmalı.` };
   const xp = xpRaw;
   const requiresApproval = assignee !== null && form.get("approval") === "on";
+  const requiresPhoto = requiresApproval && form.get("photo") === "on";
   const remind = String(form.get("remind") ?? "");
   const remindTime = /^\d{2}:\d{2}$/.test(remind) ? remind : null;
   const emoji = String(form.get("emoji") || "✅").slice(0, 8);
@@ -186,15 +187,16 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
     await sql`
       update tasks set title = ${title}, emoji = ${emoji}, notes = ${notes}, kind = ${kind},
         assignee_id = ${assignee}, xp = ${xp}, requires_approval = ${requiresApproval},
+        requires_photo = ${requiresPhoto},
         due_date = ${dueDate}, repeat = ${repeat}, repeat_days = ${repeatDays}::int[],
         repeat_dom = ${repeatDom}, remind_time = ${remindTime}
       where id = ${id}`;
     await saveSubtasks(id, subs);
   } else {
     const [created] = await sql<{ id: number }[]>`
-      insert into tasks (title, emoji, notes, kind, creator_id, assignee_id, xp, requires_approval,
+      insert into tasks (title, emoji, notes, kind, creator_id, assignee_id, xp, requires_approval, requires_photo,
                          due_date, repeat, repeat_days, repeat_dom, remind_time, start_date)
-      values (${title}, ${emoji}, ${notes}, ${kind}, ${me.id}, ${assignee}, ${xp}, ${requiresApproval},
+      values (${title}, ${emoji}, ${notes}, ${kind}, ${me.id}, ${assignee}, ${xp}, ${requiresApproval}, ${requiresPhoto},
               ${dueDate}, ${repeat}, ${repeatDays}::int[], ${repeatDom}, ${remindTime}, ${todayStr()})
       returning id`;
     await saveSubtasks(created.id, subs);

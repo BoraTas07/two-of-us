@@ -93,6 +93,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
           who: t.assignee_id === null ? "both" : t.assignee_id === me.id ? "me" : "partner",
           xp: t.xp,
           approval: t.requires_approval,
+          photo: t.requires_photo,
           due: t.due_date ?? "",
           repeat: t.repeat ?? "daily",
           days: t.repeat_days.length ? t.repeat_days : [weekday(today)],

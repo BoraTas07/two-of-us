@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { allProfiles, signAction } from "@/lib/auth";
 import { activeTasks, completionFor, loadSubtasks, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
 import { setConfig } from "@/lib/db";
+import { purgeOldPhotos } from "@/lib/photos";
 import { cronKey, markSent, sendPush } from "@/lib/push";
 import { isDueOn } from "@/lib/recurrence";
 import { addDays, nowHM, todayStr } from "@/lib/time";
@@ -35,6 +36,7 @@ export async function GET(req: Request) {
   const hm = nowHM(now);
 
   await evaluateStreaks(today);
+  await purgeOldPhotos();
 
   const profiles = await allProfiles();
   const tasks = await activeTasks();

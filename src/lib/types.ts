@@ -22,6 +22,7 @@ export type Task = {
   assignee_id: number | null; // null = ortak görev
   xp: number;
   requires_approval: boolean;
+  requires_photo: boolean;
   due_date: string | null;
   repeat: Repeat | null;
   repeat_days: number[];

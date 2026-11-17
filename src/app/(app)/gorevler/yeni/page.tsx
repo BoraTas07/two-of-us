@@ -27,6 +27,7 @@ export default async function NewTaskPage() {
           who: "me",
           xp: 10,
           approval: false,
+          photo: false,
           due: "",
           repeat: "daily",
           days: [weekday(today)],
