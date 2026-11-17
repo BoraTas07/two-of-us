@@ -65,8 +65,12 @@ export async function shopView(me: Profile, partner: Profile) {
     partnerBalance: await balanceOf(partner.id),
     /** Benim alabileceklerim */
     forMe: rewards.filter((r) => r.buyer_id === me.id),
-    /** Partnerime sunduğum hediyeler */
-    myGifts: rewards.filter((r) => r.creator_id === me.id && r.buyer_id === partner.id),
+    /** Partnerimin alabileceği tüm ödüller: kendine koydukları + benim ona hediyelerim */
+    forPartner: rewards.filter((r) => r.buyer_id === partner.id),
+    /** Partnerimin kendine aldığı, henüz kullanmadığı ödüller */
+    partnerWaiting: purchases
+      .filter((p) => p.status === "bekliyor" && p.buyer_id === partner.id && p.giver_id === partner.id)
+      .map(ser),
     /** Benim yerine getirmem gerekenler */
     toFulfill: purchases.filter((p) => p.status === "bekliyor" && p.giver_id === me.id && p.buyer_id !== me.id).map(ser),
     /** Aldığım ama henüz kullanılmamış / teslim edilmemiş ödüller */

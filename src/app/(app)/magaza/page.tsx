@@ -81,7 +81,9 @@ export default async function ShopPage() {
         </>
       )}
 
-      <SectionTitle>Alabileceklerin</SectionTitle>
+      <SectionTitle right={<span className="text-sm font-semibold text-muted">🥕 {v.balance}</span>}>
+        {me.emoji} Alabileceklerin
+      </SectionTitle>
       {v.forMe.length ? (
         <div className="space-y-2">
           {v.forMe.map((r) => {
@@ -117,22 +119,58 @@ export default async function ShopPage() {
         </Empty>
       )}
 
-      <SectionTitle>{partner.name} için tanımladıkların</SectionTitle>
-      {v.myGifts.length ? (
+      <SectionTitle right={<span className="text-sm font-semibold text-muted">🥕 {v.partnerBalance}</span>}>
+        {partner.emoji} {partner.name} alabilecekleri
+      </SectionTitle>
+      {v.forPartner.length ? (
         <div className="space-y-2">
-          {v.myGifts.map((r) => (
-            <Link key={r.id} href={`/magaza/${r.id}`} className="card flex items-center gap-3 p-3">
-              <span className="text-3xl">{r.emoji}</span>
-              <div className="min-w-0 flex-1 font-extrabold">{r.title}</div>
-              <span className="chip bg-xp-soft text-xp-ink">🥕 {r.cost}</span>
-              <span className="text-muted">›</span>
-            </Link>
-          ))}
+          {v.forPartner.map((r) => {
+            const myGift = r.creator_id === me.id;
+            const missing = r.cost - v.partnerBalance;
+            const body = (
+              <>
+                <span className="text-3xl">{r.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-extrabold">{r.title}</div>
+                  <div className="mt-0.5 flex flex-wrap gap-1">
+                    <span className="chip bg-xp-soft text-xp-ink">🥕 {r.cost}</span>
+                    <span className={`chip ${myGift ? "bg-rose-soft text-ink" : "bg-line text-muted"}`}>
+                      {myGift ? "🎁 Senin hediyen" : "Kendi ödülü"}
+                    </span>
+                  </div>
+                </div>
+                <span className="max-w-24 text-right text-xs leading-tight font-semibold text-muted">
+                  {missing > 0 ? `${missing} 🥕 daha` : "Alabilir ✓"}
+                </span>
+                {myGift && <span className="text-muted">›</span>}
+              </>
+            );
+            return myGift ? (
+              <Link key={r.id} href={`/magaza/${r.id}`} className="card flex items-center gap-3 p-3">
+                {body}
+              </Link>
+            ) : (
+              <div key={r.id} className="card flex items-center gap-3 p-3">
+                {body}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="px-1 text-sm font-semibold text-muted">
-          {partner.name} kendi havuçlarıyla alabilsin diye bir hediye ekle: masaj, kahvaltı, film gecesi seçimi…
+          {partner.name} için henüz ödül yok. Kendi havuçlarıyla alabilsin diye bir hediye ekle: masaj, kahvaltı, film
+          gecesi seçimi…
         </p>
+      )}
+
+      {v.partnerWaiting.length > 0 && (
+        <div className="mt-2 space-y-1 px-1">
+          {v.partnerWaiting.map((p) => (
+            <p key={p.id} className="text-xs font-semibold text-muted">
+              🛍️ {partner.name} {day(p.created_at)} günü aldı, henüz kullanmadı: {p.emoji} {p.title}
+            </p>
+          ))}
+        </div>
       )}
 
       {v.history.length > 0 && (
