@@ -18,6 +18,7 @@ import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
 import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/shop";
 import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
 import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
+import { requestLocation, saveLocation, setSharing } from "@/lib/location";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -420,4 +421,32 @@ export async function sendEmojiAction(emoji: string) {
 export async function markEmojisSeenAction(ids: number[]) {
   const { me } = await requireUser();
   await markEmojisSeen(me.id, ids.filter((n) => Number.isInteger(n)).slice(0, 50));
+}
+
+// ---------------------------------------------------------------- konum
+
+export async function setLocationSharingAction(on: boolean) {
+  const { me, partner } = await requireUser();
+  await setSharing(me, on);
+  if (on) {
+    notifyLater(partner.id, {
+      title: `📍 ${me.name} konumunu seninle paylaşmaya başladı`,
+      body: "Konum sayfasından görebilirsin.",
+      url: "/konum",
+      tag: `loc-on-${me.id}`,
+    });
+  }
+  refresh();
+}
+
+export async function updateLocationAction(lat: number, lng: number, accuracy: number | null) {
+  const { me } = await requireUser();
+  const err = await saveLocation(me, Number(lat), Number(lng), accuracy === null ? null : Number(accuracy));
+  return err ? { error: err } : { ok: true };
+}
+
+export async function requestLocationAction() {
+  const { me, partner } = await requireUser();
+  const err = await requestLocation(me, partner);
+  return err ? { error: err } : { ok: true };
 }

@@ -12,6 +12,16 @@ import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
 import { recentEmojis } from "@/lib/emoji-server";
 import EmojiBar from "@/components/emoji-bar";
+import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
+
+function locAgo(iso: string) {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return min < 1 ? "az önce" : min < 60 ? `${min} dk önce` : min < 1440 ? `${Math.round(min / 60)} sa önce` : "1+ gün önce";
+}
+
+function km(m: number) {
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} km`;
+}
 
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
@@ -27,6 +37,7 @@ export default async function TodayPage() {
   const rewards = await pendingRewardCounts(me.id);
   const toAnswer = await objectionsToAnswer(me.id);
   const recent = await recentEmojis(6);
+  const [mySharing, myLoc, partnerLoc] = await Promise.all([sharingOf(me.id), locationOf(me.id), locationOf(partner.id)]);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -178,6 +189,16 @@ export default async function TodayPage() {
         )}
         {!v.partner.todayDone && v.partner.todayCount.due > 0 && <NudgeButton name={partner.name} />}
         <EmojiBar meId={me.id} partnerName={partner.name} recent={recent} />
+        <Link href="/konum" className="mt-3 flex items-center gap-2 rounded-xl bg-bg px-3 py-2.5 text-sm font-semibold">
+          <span className="text-lg">📍</span>
+          <span className="min-w-0 flex-1 truncate">
+            {partnerLoc
+              ? `${partner.name} · ${locAgo(partnerLoc.updatedAt)}${myLoc ? ` · ${km(distanceMeters(myLoc, partnerLoc))}` : ""}`
+              : `Konum${mySharing ? "" : " · paylaşım kapalı"}`}
+          </span>
+          {mySharing && <span className="chip bg-sage-soft text-sage-ink">Konumun açık</span>}
+          <span className="font-black text-brand">›</span>
+        </Link>
       </div>
 
       <Link href="/biz" className="card mt-6 block p-4">

@@ -224,6 +224,17 @@ create table if not exists emoji_messages (
 );
 create index if not exists emoji_messages_to on emoji_messages (to_id, seen_at);
 
+-- Konum paylaşımı: her kişi kendisi açar; sadece SON konum tutulur (geçmiş yok)
+alter table profiles add column if not exists location_sharing boolean not null default false;
+
+create table if not exists locations (
+  profile_id int primary key references profiles(id) on delete cascade,
+  lat double precision not null,
+  lng double precision not null,
+  accuracy real,
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -237,7 +248,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "9";
+const SCHEMA_VERSION = "10";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {
