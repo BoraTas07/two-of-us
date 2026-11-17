@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
+// Bu uygulamadaki her sayfa giriş yapan kişiye özel veriler gösterdiği için
+// Cache Components kapalı: sayfalar her istekte sunucuda yeniden oluşturulur.
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  cacheComponents: false,
   turbopack: {
     rules: {
       "*.css": {
@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  serverExternalPackages: ["web-push", "postgres"],
 };
 
 export default nextConfig;
