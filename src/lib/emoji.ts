@@ -19,6 +19,8 @@ export const EMOJI_OPTIONS = [
   { emoji: "🏋️", name: "spor emojisi" },
   { emoji: "💃", name: "dans eden kadın" },
   { emoji: "😎", name: "güneş gözlüklü yüz" },
+  { emoji: "🤨", name: "tek kaşı kalkık surat" },
+  { emoji: "😉", name: "göz kırpan surat" },
   { emoji: "💩", name: "kaka surat" },
 ] as const;
 
