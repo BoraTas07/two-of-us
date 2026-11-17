@@ -73,9 +73,21 @@ export function Flame({ streak, lit, size = 22 }: { streak: number; lit: boolean
   );
 }
 
-export function XpChip({ xp, faded = false }: { xp: number; faded?: boolean }) {
+export function CarrotChip({ n, faded = false }: { n: number; faded?: boolean }) {
   return (
-    <span className={`chip ${faded ? "bg-line text-muted" : "bg-xp-soft text-xp-ink"}`}>⚡ {xp} XP</span>
+    <span className={`chip ${faded ? "bg-line text-muted" : "bg-xp-soft text-xp-ink"}`} aria-label={`${n} havuç`}>
+      🥕 {n}
+    </span>
+  );
+}
+
+/** "🥕 120" şeklinde havuç miktarı */
+export function Carrots({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 ${className}`} aria-label={`${n} havuç`}>
+      <span aria-hidden>🥕</span>
+      {n}
+    </span>
   );
 }
 

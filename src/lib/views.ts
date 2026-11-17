@@ -17,7 +17,7 @@ import {
 } from "./game";
 import { levelFromXp, type LevelInfo } from "./levels";
 import { describeRepeat, isDueOn } from "./recurrence";
-import { addDays, todayStr, weekStart } from "./time";
+import { addDays, formatShort, todayStr, weekStart, weekday, WEEKDAYS_SHORT } from "./time";
 import type { Profile, Task } from "./types";
 
 export type TaskItem = {
@@ -37,7 +37,22 @@ export type TaskItem = {
   overdue: boolean;
   habitStreak: number;
   done: null | { status: "pending" | "approved"; byId: number };
+  /** Giriş yapan kişi bu görevi şu an tamamlayabilir mi? */
+  canComplete: boolean;
+  /** Tamamlayamıyorsa kısa açıklama */
+  blockedReason: string | null;
 };
+
+type Viewer = { meId: number; partnerName: string };
+
+/** Tekrarlı bir görevin bir sonraki günü: "Yarın", "Per", "17 Ara" */
+function nextDueText(t: Task, today: string): string | null {
+  for (let i = 1; i <= 62; i++) {
+    const d = addDays(today, i);
+    if (isDueOn(t, d)) return i === 1 ? "Yarın" : i < 7 ? WEEKDAYS_SHORT[weekday(d)] : formatShort(d);
+  }
+  return null;
+}
 
 export type PersonSummary = {
   profile: Profile;
@@ -48,8 +63,14 @@ export type PersonSummary = {
   todayCount: { due: number; done: number };
 };
 
-function toItem(t: Task, today: string, idx: CompletionIndex): TaskItem {
+function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskItem {
   const c = completionFor(t, today, idx);
+  let blockedReason: string | null = null;
+  if (!relevantTo(t, v.meId)) blockedReason = `${v.partnerName} yapacak`;
+  else if (t.kind !== "once" && !isDueOn(t, today)) {
+    const next = nextDueText(t, today);
+    blockedReason = next ? `Sıradaki: ${next}` : "Bugün değil";
+  }
   return {
     id: t.id,
     title: t.title,
@@ -67,6 +88,8 @@ function toItem(t: Task, today: string, idx: CompletionIndex): TaskItem {
     overdue: t.kind === "once" && !c && !!t.due_date && t.due_date < today,
     habitStreak: t.kind === "habit" ? habitStreak(t, today, idx) : 0,
     done: c ? { status: c.status, byId: c.profile_id } : null,
+    canComplete: !c && blockedReason === null,
+    blockedReason: c ? null : blockedReason,
   };
 }
 
@@ -107,16 +130,17 @@ export async function todayView(me: Profile, partner: Profile) {
   const totals = await xpTotals();
 
   const visible = tasks.filter((t) => showToday(t, today, idx));
+  const v = { meId: me.id, partnerName: partner.name };
   const sortItems = (a: TaskItem, b: TaskItem) =>
     Number(!!a.done) - Number(!!b.done) ||
     Number(b.overdue) - Number(a.overdue) ||
     (a.remindTime ?? "99").localeCompare(b.remindTime ?? "99");
 
-  const mine = visible.filter((t) => t.assignee_id === me.id).map((t) => toItem(t, today, idx)).sort(sortItems);
-  const shared = visible.filter((t) => t.assignee_id === null).map((t) => toItem(t, today, idx)).sort(sortItems);
+  const mine = visible.filter((t) => t.assignee_id === me.id).map((t) => toItem(t, today, idx, v)).sort(sortItems);
+  const shared = visible.filter((t) => t.assignee_id === null).map((t) => toItem(t, today, idx, v)).sort(sortItems);
   const theirs = visible
     .filter((t) => t.assignee_id === partner.id)
-    .map((t) => toItem(t, today, idx))
+    .map((t) => toItem(t, today, idx, v))
     .sort(sortItems);
 
   const pending = await sql<
@@ -142,9 +166,10 @@ export async function todayView(me: Profile, partner: Profile) {
   };
 }
 
-export async function allTasksView(me: Profile) {
+export async function allTasksView(me: Profile, partner: Profile) {
   const { tasks, idx, today } = await loadState();
-  const items = tasks.map((t) => toItem(t, today, idx));
+  const v = { meId: me.id, partnerName: partner.name };
+  const items = tasks.map((t) => toItem(t, today, idx, v));
   const upcomingOnce = tasks
     .filter((t) => t.kind === "once" && !idx.once.get(t.id))
     .map((t) => t.id);
@@ -160,4 +185,11 @@ export async function allTasksView(me: Profile) {
     doneOnce: doneOnce.map((d) => ({ ...d, completed_at: d.completed_at.toISOString(), day: todayStr(d.completed_at) })),
     relevantCount: tasks.filter((t) => relevantTo(t, me.id)).length,
   };
+}
+
+/** Tek bir görevin kart verisi (görev detay sayfası için) */
+export async function taskItemView(me: Profile, partner: Profile, taskId: number): Promise<TaskItem | null> {
+  const { tasks, idx, today } = await loadState();
+  const t = tasks.find((x) => x.id === taskId);
+  return t ? toItem(t, today, idx, { meId: me.id, partnerName: partner.name }) : null;
 }

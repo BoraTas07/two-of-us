@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { decideAction } from "@/app/actions";
 import { celebrate } from "./celebration";
-import { XpChip } from "./ui";
+import { CarrotChip } from "./ui";
 
 export default function PendingCard({
   p,
@@ -40,7 +40,7 @@ export default function PendingCard({
         <div className="min-w-0 flex-1">
           <div className="font-extrabold">{p.title}</div>
           <div className="mt-0.5 flex items-center gap-2 text-xs font-bold text-muted">
-            <XpChip xp={p.xp} /> {partnerName} {time}&apos;da bitirdi
+            <CarrotChip n={p.xp} /> {partnerName} {time}&apos;da bitirdi
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { allProfiles } from "@/lib/auth";
+import { allProfiles, signAction } from "@/lib/auth";
 import { activeTasks, completionFor, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
 import { setConfig } from "@/lib/db";
 import { cronKey, markSent, sendPush } from "@/lib/push";
@@ -59,10 +59,12 @@ export async function GET(req: Request) {
           title: `⏰ ${t.emoji} ${t.title}`,
           body:
             t.assignee_id === null
-              ? `Ortak görev zamanı! Bitiren ikinize de +${t.xp} XP kazandırır.`
-              : `Hatırlatma: bunu bitir, +${t.xp} XP kap!`,
-          url: "/",
+              ? `Ortak görev zamanı! Bitiren ikinize de +${t.xp} 🥕 kazandırır.`
+              : `Hatırlatma: bunu bitir, +${t.xp} 🥕 kap!`,
+          url: `/gorevler/${t.id}`,
           tag: `task-${t.id}`,
+          actions: [{ action: "complete", title: "✓ Tamamla" }],
+          token: await signAction("complete", p.id, t.id, 36 * 3600),
         });
         sent.push(`hatırlatma ${p.name}: ${t.title}`);
       }

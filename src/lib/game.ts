@@ -1,6 +1,7 @@
 import "server-only";
 import { after } from "next/server";
 import { BADGES, BADGE_BY_ID, type Badge, type BadgeStats } from "./badges";
+import { signAction } from "./auth";
 import { ensureSchema, getConfig, sql } from "./db";
 import { GOAL_BONUS, STREAK_BONUS, levelFromXp } from "./levels";
 import { sendPush, type PushMessage } from "./push";
@@ -194,7 +195,7 @@ export async function evaluateStreaks(today = todayStr()): Promise<void> {
       else if (last.bonus)
         notifyLater(p.id, {
           title: `🔥 ${last.streak} günlük seri!`,
-          body: `Tebrikler, +${last.bonus} XP bonus kazandın.`,
+          body: `Tebrikler, +${last.bonus} 🥕 bonus kazandın.`,
           tag: "streak",
         });
     }
@@ -299,7 +300,7 @@ async function checkGoal(today: string): Promise<boolean> {
               values (${p.id}, ${GOAL_BONUS}, 'goal', 'Haftalık ortak hedef bonusu', ${today})`;
     notifyLater(p.id, {
       title: "🏆 Haftalık hedefe ulaştınız!",
-      body: `Birlikte ${target} XP topladınız. İkinize de +${GOAL_BONUS} XP!`,
+      body: `Birlikte ${target} havuç topladınız. İkinize de +${GOAL_BONUS} 🥕!`,
       url: "/biz",
       tag: "goal",
     });
@@ -355,9 +356,14 @@ export async function completeTask(me: Profile, taskId: number): Promise<Complet
   if (status === "pending") {
     notifyLater(partner.id, {
       title: `🙋 ${me.name} onayını bekliyor`,
-      body: `${task.emoji} ${task.title} — onaylarsan +${task.xp} XP kazanacak`,
-      url: "/",
+      body: `${task.emoji} ${task.title} — onaylarsan +${task.xp} 🥕 kazanacak`,
+      url: "/#onay",
       tag: `approve-${c.id}`,
+      actions: [
+        { action: "approve", title: "✓ Onayla" },
+        { action: "reject", title: "↩ Geri çevir" },
+      ],
+      token: await signAction("decide", partner.id, c.id),
     });
     return { status, xp: task.xp, levelUp: null, badges: [], goalReached: false };
   }
@@ -366,7 +372,7 @@ export async function completeTask(me: Profile, taskId: number): Promise<Complet
   if (shared) {
     notifyLater(partner.id, {
       title: `💞 ${me.name} ortak görevi bitirdi`,
-      body: `${task.emoji} ${task.title} — ikinize de +${task.xp} XP!`,
+      body: `${task.emoji} ${task.title} — ikinize de +${task.xp} 🥕!`,
       tag: `done-${c.id}`,
     });
   } else if (task.creator_id === partner.id) {
@@ -431,7 +437,7 @@ export async function decideCompletion(me: Profile, completionId: number, approv
   await awardXp([c.profile_id], c.id, c.xp, c.title, today);
   const levelAfter = levelFromXp(await profileXp(c.profile_id)).level;
   notifyLater(c.profile_id, {
-    title: `🎉 ${me.name} onayladı: +${c.xp} XP`,
+    title: `🎉 ${me.name} onayladı: +${c.xp} 🥕`,
     body:
       `${c.emoji} ${c.title}` + (levelAfter > levelBefore ? ` — ve ${levelAfter}. seviyeye çıktın! ⬆️` : ""),
     tag: `approve-${c.id}`,

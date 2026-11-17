@@ -81,3 +81,30 @@ export async function requireUser(): Promise<{ me: Profile; partner: Profile }> 
   const partner = profiles.find((p) => p.id !== me.id)!;
   return { me, partner };
 }
+
+// ---------------------------------------------------------------- bildirim işlemleri
+// Bildirimdeki "Tamamla" / "Onayla" butonları için imzalı, süreli anahtar.
+// Uygulama açık olmasa bile hangi kişinin hangi işlemi yapabileceğini gösterir.
+
+export type ActionKind = "complete" | "decide";
+
+export async function signAction(kind: ActionKind, profileId: number, id: number, ttlSec = 3 * 24 * 3600) {
+  const exp = Math.floor(Date.now() / 1000) + ttlSec;
+  const data = `act.${kind}.${profileId}.${id}.${exp}`;
+  return `${data}.${sign(data, await secret())}`;
+}
+
+export async function verifyAction(
+  token: string,
+): Promise<{ kind: ActionKind; profileId: number; id: number } | null> {
+  const parts = String(token).split(".");
+  if (parts.length !== 6 || parts[0] !== "act") return null;
+  const [, kind, pid, id, exp, sig] = parts;
+  if (kind !== "complete" && kind !== "decide") return null;
+  const expected = sign(parts.slice(0, 5).join("."), await secret());
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  if (Number(exp) < Date.now() / 1000) return null;
+  return { kind, profileId: Number(pid), id: Number(id) };
+}

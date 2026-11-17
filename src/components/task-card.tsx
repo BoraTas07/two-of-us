@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { completeAction, undoAction } from "@/app/actions";
 import { formatRelative } from "@/lib/time";
 import { colorOf } from "@/lib/types";
 import type { TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
-import { XpChip } from "./ui";
+import { CarrotChip } from "./ui";
 
 type Person = { id: number; name: string; emoji: string; color: string };
 
@@ -16,35 +16,29 @@ export default function TaskCard({
   me,
   partner,
   today,
-  readOnly = false,
 }: {
   item: TaskItem;
   me: Person;
   partner: Person;
   today: string;
-  readOnly?: boolean;
 }) {
   const [isPending, start] = useTransition();
   const [done, setDone] = useOptimistic(item.done);
+  const [error, setError] = useState<string | null>(null);
   const c = colorOf(item.shared ? "berry" : item.assigneeId === me.id ? me.color : partner.color);
-  const canUndo = done && done.byId === me.id && !readOnly;
-  const doneBy = done && item.shared ? (done.byId === me.id ? me : partner) : null;
+  const mineDone = !!done && done.byId === me.id;
+  const doneBy = done ? (done.byId === me.id ? me : partner) : null;
 
-  function toggle(e: React.MouseEvent<HTMLButtonElement>) {
-    if (readOnly || isPending) return;
+  function complete(e: React.MouseEvent<HTMLButtonElement>) {
+    if (isPending) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = { x: rect.left + rect.width / 2, y: rect.top };
+    setError(null);
     start(async () => {
-      if (done) {
-        if (!canUndo) return;
-        setDone(null);
-        await undoAction(item.id);
-        return;
-      }
-      setDone({ status: item.requiresApproval ? "pending" : "approved", byId: me.id });
+      setDone({ status: item.requiresApproval && !item.shared ? "pending" : "approved", byId: me.id });
       const r = await completeAction(item.id);
       if ("error" in r) {
-        alert(r.error);
+        setError(r.error);
         return;
       }
       if (r.status === "already") return;
@@ -59,8 +53,18 @@ export default function TaskCard({
     });
   }
 
+  function undo() {
+    if (isPending || !mineDone) return;
+    if (!confirm(`"${item.title}" tamamlanmamış olarak işaretlensin mi? Kazanılan havuçlar geri alınır.`)) return;
+    setError(null);
+    start(async () => {
+      setDone(null);
+      await undoAction(item.id);
+    });
+  }
+
   const meta: React.ReactNode[] = [];
-  if (item.overdue) meta.push(<span key="o" className="chip bg-danger-soft text-danger">⚠️ Gecikti</span>);
+  if (item.overdue) meta.push(<span key="o" className="chip bg-danger-soft text-danger">Gecikti</span>);
   if (item.kind === "habit")
     meta.push(
       <span key="h" className="chip bg-brand-soft text-brand-dark">
@@ -72,7 +76,8 @@ export default function TaskCard({
   if (item.kind === "once" && item.dueDate && !item.overdue)
     meta.push(<span key="d" className="chip bg-line text-muted">📅 {formatRelative(item.dueDate, today)}</span>);
   if (item.remindTime) meta.push(<span key="t" className="chip bg-ice-soft text-ice-ink">⏰ {item.remindTime}</span>);
-  if (item.requiresApproval) meta.push(<span key="a" className="chip bg-line text-ink">🤝 Onaylı</span>);
+  if (item.requiresApproval && !item.shared)
+    meta.push(<span key="a" className="chip bg-line text-ink">🤝 Onaylı</span>);
   if (!item.shared && item.creatorId !== item.assigneeId) {
     const giver = item.creatorId === me.id ? me : partner;
     meta.push(
@@ -82,40 +87,64 @@ export default function TaskCard({
     );
   }
 
-  return (
-    <div
-      className={`card flex items-center gap-3 p-3 transition-opacity ${done?.status === "approved" ? "opacity-70" : ""}`}
-    >
-      <button
-        onClick={toggle}
-        disabled={readOnly || (!!done && !canUndo)}
-        aria-label={done ? (canUndo ? "Geri al" : "Tamamlandı") : `${item.title} görevini tamamla`}
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl font-black transition-all ${
-          readOnly ? "cursor-default" : "active:scale-90"
-        } ${done ? "animate-pop" : ""}`}
-        style={
-          done?.status === "approved"
-            ? { background: "var(--sage)", color: "white" }
-            : done?.status === "pending"
-              ? { background: "var(--warn-soft)", boxShadow: "inset 0 0 0 1.5px var(--xp)" }
-              : { background: c.soft, boxShadow: `inset 0 0 0 1.5px ${c.bg}55` }
-        }
-      >
-        {done?.status === "approved" ? "✓" : done?.status === "pending" ? "⏳" : <span className="opacity-90">{item.emoji}</span>}
+  let action: React.ReactNode;
+  if (done?.status === "approved") {
+    action = mineDone ? (
+      <button onClick={undo} disabled={isPending} className="btn bg-sage-soft px-3 py-2 text-sm text-sage-ink" title="Geri almak için dokun">
+        ✓ Bitti
       </button>
+    ) : (
+      <span className="chip bg-sage-soft px-2.5 py-1.5 text-sage-ink">
+        ✓ {doneBy?.emoji} bitirdi
+      </span>
+    );
+  } else if (done?.status === "pending") {
+    action = mineDone ? (
+      <button onClick={undo} disabled={isPending} className="btn bg-warn-soft px-3 py-2 text-sm text-xp-ink" title="Geri almak için dokun">
+        ⏳ Onayda
+      </button>
+    ) : (
+      <span className="chip bg-warn-soft px-2.5 py-1.5 text-xp-ink">⏳ Onayda</span>
+    );
+  } else if (item.canComplete) {
+    action = (
+      <button
+        onClick={complete}
+        disabled={isPending}
+        aria-label={`${item.title} görevini tamamla`}
+        className="btn bg-brand px-3.5 py-2 text-sm text-white"
+      >
+        Tamamla
+      </button>
+    );
+  } else {
+    action = <span className="max-w-24 text-right text-xs leading-tight font-semibold text-muted">{item.blockedReason}</span>;
+  }
 
-      <Link href={`/gorevler/${item.id}`} className="min-w-0 flex-1">
-        <div className={`font-extrabold leading-tight ${done?.status === "approved" ? "text-muted line-through" : ""}`}>
-          {done ? `${item.emoji} ` : ""}
-          {item.title}
-        </div>
-        <div className="mt-1 flex flex-wrap gap-1">
-          <XpChip xp={item.xp} faded={!!done} />
-          {meta}
-          {doneBy && <span className="chip bg-sage-soft text-sage-ink">{doneBy.emoji} bitirdi</span>}
-          {done?.status === "pending" && <span className="chip bg-xp-soft text-xp-ink">Onay bekliyor</span>}
-        </div>
-      </Link>
+  return (
+    <div className={`card p-3 transition-opacity ${done?.status === "approved" ? "opacity-75" : ""}`}>
+      <div className="flex items-center gap-3">
+        <Link
+          href={`/gorevler/${item.id}`}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
+          style={{ background: c.soft, boxShadow: `inset 0 0 0 1.5px ${c.bg}40` }}
+          aria-hidden
+          tabIndex={-1}
+        >
+          {item.emoji}
+        </Link>
+        <Link href={`/gorevler/${item.id}`} className="min-w-0 flex-1">
+          <div className={`leading-tight font-extrabold ${done?.status === "approved" ? "text-muted line-through" : ""}`}>
+            {item.title}
+          </div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            <CarrotChip n={item.xp} faded={!!done} />
+            {meta}
+          </div>
+        </Link>
+        <div className="shrink-0">{action}</div>
+      </div>
+      {error && <p className="animate-pop mt-2 text-sm font-semibold text-danger">{error}</p>}
     </div>
   );
 }

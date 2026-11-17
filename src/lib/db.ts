@@ -129,6 +129,30 @@ create table if not exists sent_log (
   created_at timestamptz not null default now()
 );
 
+create table if not exists rewards (
+  id serial primary key,
+  title text not null,
+  emoji text not null default '🎁',
+  cost int not null check (cost > 0),
+  creator_id int not null references profiles(id),
+  buyer_id int not null references profiles(id),
+  archived boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists purchases (
+  id serial primary key,
+  reward_id int references rewards(id) on delete set null,
+  buyer_id int not null references profiles(id),
+  giver_id int not null references profiles(id),
+  title text not null,
+  emoji text not null,
+  cost int not null,
+  status text not null default 'bekliyor' check (status in ('bekliyor', 'teslim')),
+  created_at timestamptz not null default now(),
+  fulfilled_at timestamptz
+);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,

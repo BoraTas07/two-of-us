@@ -31,10 +31,10 @@ const ICONS: Record<string, React.ReactNode> = {
       d="M12 19s-7-4.3-7-9.2A3.8 3.8 0 0 1 12 7.6a3.8 3.8 0 0 1 7 2.2C19 14.7 12 19 12 19Z"
     />
   ),
-  stats: (
+  shop: (
     <>
-      <path {...stroke} d="M4 19h16" />
-      <path {...stroke} d="M7 16v-4M12 16V7M17 16v-6" />
+      <path {...stroke} d="M5.5 8h13l-1 11.5h-11Z" />
+      <path {...stroke} d="M9 10.5V7a3 3 0 0 1 6 0v3.5" />
     </>
   ),
 };
@@ -43,8 +43,8 @@ const ITEMS = [
   { href: "/", label: "Bugün", icon: "home" },
   { href: "/gorevler", label: "Görevler", icon: "list" },
   { href: "/gorevler/yeni", label: "Ekle", icon: "", big: true },
+  { href: "/magaza", label: "Mağaza", icon: "shop" },
   { href: "/biz", label: "Biz", icon: "us" },
-  { href: "/istatistik", label: "İstatistik", icon: "stats" },
 ];
 
 export default function BottomNav() {
@@ -54,7 +54,7 @@ export default function BottomNav() {
       ? path === "/"
       : href === "/gorevler"
         ? path === "/gorevler" || /^\/gorevler\/\d/.test(path)
-        : path.startsWith(href);
+        : path.startsWith(href) || (href === "/biz" && path.startsWith("/istatistik"));
 
   return (
     <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur">

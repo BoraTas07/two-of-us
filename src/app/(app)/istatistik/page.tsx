@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { dayResult } from "@/lib/game";
@@ -73,16 +74,21 @@ export default async function StatsPage() {
 
   return (
     <>
-      <h1 className="mt-3 px-1 text-2xl font-black">İstatistik</h1>
+      <div className="mt-3 flex items-center gap-2 px-1">
+        <Link href="/biz" className="text-2xl text-muted" aria-label="Geri">
+          ←
+        </Link>
+        <h1 className="text-2xl font-black">İstatistik</h1>
+      </div>
       {nobody && (
         <div className="mt-4">
           <Empty emoji="📈">Görev bitirdikçe burada grafikler belirecek.</Empty>
         </div>
       )}
 
-      <SectionTitle right={<Legend me={me} partner={partner} />}>Son 7 gün (XP)</SectionTitle>
+      <SectionTitle right={<Legend me={me} partner={partner} />}>Son 7 gün (🥕)</SectionTitle>
       <div className="card p-4">
-        <div className="flex h-40 items-end gap-1.5" role="img" aria-label="Son 7 günde günlük kazanılan XP">
+        <div className="flex h-40 items-end gap-1.5" role="img" aria-label="Son 7 günde günlük kazanılan havuç">
           {days7.map((d) => {
             const vals = people.map((p) => xpOf(p.id, d));
             return (
@@ -105,7 +111,7 @@ export default async function StatsPage() {
                   <div className="text-white/70">{formatRelative(d, today)}</div>
                   {people.map((p, i) => (
                     <div key={p.id}>
-                      {p.emoji} {vals[i]} XP
+                      {p.emoji} {vals[i]} 🥕
                     </div>
                   ))}
                 </div>
@@ -129,7 +135,7 @@ export default async function StatsPage() {
             <tr className="text-left text-xs text-muted">
               <th className="px-4 py-2 font-extrabold"></th>
               <th className="px-2 py-2 text-right font-extrabold">Görev</th>
-              <th className="px-2 py-2 text-right font-extrabold">XP</th>
+              <th className="px-2 py-2 text-right font-extrabold">🥕</th>
               <th className="px-4 py-2 text-right font-extrabold">Başarı</th>
             </tr>
           </thead>

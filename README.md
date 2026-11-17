@@ -1,6 +1,6 @@
 # Two Of Us
 
-İki kişilik, oyunlaştırılmış (XP, seviye, seri, joker, rozet, ortak hedef), push bildirimli
+İki kişilik, oyunlaştırılmış (havuç puanı, seviye, seri, joker, rozet, ortak hedef, ödül mağazası), push bildirimli
 görev takip uygulaması. Telefona "Ana Ekrana Ekle" ile kurulan bir web uygulaması (PWA).
 
 **Kurulum için: [KURULUM.md](KURULUM.md)**
@@ -26,9 +26,10 @@ npm test
 
 ## Yapı
 
-- `src/lib/` — iş mantığı: `game.ts` (tamamlama, onay, XP, seri, rozet, hedef),
+- `src/lib/` — iş mantığı: `game.ts` (tamamlama, onay, havuç, seri, rozet, hedef), `shop.ts` (mağaza),
   `recurrence.ts`, `streak.ts`, `levels.ts`, `badges.ts`, `push.ts`, `auth.ts`, `db.ts`
 - `src/app/(app)/` — giriş gerektiren sayfalar: Bugün, Görevler, Biz, İstatistik, Profil
 - `src/app/actions.ts` — sunucu eylemleri
 - `src/app/api/cron/route.ts` — hatırlatma zamanlayıcısı
+- `src/app/api/bildirim/route.ts` — bildirim butonları (imzalı, süreli anahtarla)
 - `public/sw.js` — bildirimleri gösteren servis çalışanı

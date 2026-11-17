@@ -5,8 +5,10 @@ import { sql } from "@/lib/db";
 import { getTask } from "@/lib/game";
 import { formatShort, todayStr, weekday } from "@/lib/time";
 import TaskForm from "@/components/task-form";
+import TaskCard from "@/components/task-card";
+import { taskItemView } from "@/lib/views";
 
-export const metadata = { title: "Görevi düzenle — Two Of Us" };
+export const metadata = { title: "Görev — Two Of Us" };
 
 export default async function EditTaskPage({ params }: { params: Promise<{ id: string }> }) {
   const { me, partner } = await requireUser();
@@ -19,6 +21,11 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
     select occ_date, profile_id, status from completions where task_id = ${t.id}
     order by occ_date desc limit 14`;
   const creator = t.creator_id === me.id ? "Sen" : partner.name;
+  const item = await taskItemView(me, partner, t.id);
+  const people = {
+    me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
+    partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
+  };
 
   return (
     <>
@@ -31,6 +38,13 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
         </h1>
       </div>
       <p className="mb-4 px-1 text-sm font-semibold text-muted">{creator} oluşturdu</p>
+
+      {item && (
+        <div className="mb-5">
+          <TaskCard item={item} me={people.me} partner={people.partner} today={today} />
+          {t.notes && <p className="card mt-2 p-4 text-sm whitespace-pre-wrap">{t.notes}</p>}
+        </div>
+      )}
 
       {history.length > 0 && (
         <div className="card mb-5 p-4">
@@ -45,6 +59,11 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
         </div>
       )}
 
+      {t.creator_id !== me.id ? (
+        <p className="card p-4 text-sm font-semibold text-muted">
+          🔒 Bu görevi {partner.name} oluşturdu. Sadece o değiştirebilir ya da silebilir.
+        </p>
+      ) : (
       <TaskForm
         partnerName={partner.name}
         today={today}
@@ -64,6 +83,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
           remind: t.remind_time ?? "",
         }}
       />
+      )}
     </>
   );
 }

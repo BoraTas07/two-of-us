@@ -17,7 +17,7 @@ const FILTERS = [
 export default async function TasksPage({ searchParams }: { searchParams: Promise<{ kim?: string }> }) {
   const { me, partner } = await requireUser();
   const { kim = "hepsi" } = await searchParams;
-  const v = await allTasksView(me);
+  const v = await allTasksView(me, partner);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -84,7 +84,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             {g.items.length ? (
               <div className="space-y-2">
                 {g.items.map((t) => (
-                  <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} readOnly />
+                  <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} />
                 ))}
               </div>
             ) : (

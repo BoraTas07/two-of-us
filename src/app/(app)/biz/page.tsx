@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { BADGES } from "@/lib/badges";
 import { sql } from "@/lib/db";
@@ -27,7 +28,12 @@ export default async function UsPage() {
 
   return (
     <>
-      <h1 className="mt-3 px-1 text-2xl font-black">Biz</h1>
+      <div className="mt-3 flex items-center justify-between px-1">
+        <h1 className="text-2xl font-black">Biz</h1>
+        <Link href="/istatistik" className="btn bg-surface py-2 text-sm text-ink">
+          📊 İstatistik
+        </Link>
+      </div>
 
       <div className={`card mt-3 p-4 ${reached ? "bg-rose-soft" : ""}`}>
         <div className="flex items-center justify-between">
@@ -41,7 +47,7 @@ export default async function UsPage() {
         </div>
         <div className="mt-3 flex items-baseline justify-between font-black">
           <span className="text-3xl">{progress.total}</span>
-          <span className="text-muted">/ {target} XP</span>
+          <span className="text-muted">/ {target} 🥕</span>
         </div>
         <div className="mt-1">
           <ProgressBar value={progress.total} max={target} color="var(--rose)" height={18} />
@@ -61,14 +67,14 @@ export default async function UsPage() {
         <div className="mt-2 flex justify-between text-sm font-bold">
           {people.map((p) => (
             <span key={p.profile.id} className="flex items-center gap-1">
-              {p.profile.emoji} {p.profile.name}: {progress.byProfile.get(p.profile.id) ?? 0} XP
+              {p.profile.emoji} {p.profile.name}: {progress.byProfile.get(p.profile.id) ?? 0} 🥕
             </span>
           ))}
         </div>
         <p className="mt-2 text-sm font-semibold text-muted">
           {reached
-            ? "Bu haftanın hedefi tamam! İkinize de bonus XP verildi 🎉"
-            : `Hedefe ${target - progress.total} XP kaldı. Ulaşınca ikinize de +50 XP!`}
+            ? "Bu haftanın hedefi tamam! İkinize de bonus havuç verildi 🎉"
+            : `Hedefe ${target - progress.total} havuç kaldı. Ulaşınca ikinize de +50 🥕!`}
         </p>
       </div>
 
@@ -90,7 +96,7 @@ export default async function UsPage() {
                 <span className="font-black text-ice">🧊{p.profile.freezes}</span>
               </div>
               <div className="mt-1 text-xs font-bold text-muted">
-                {p.xp} XP · en uzun seri {Math.max(p.profile.best_streak, p.streak)}
+                {p.xp} 🥕 toplam · en uzun seri {Math.max(p.profile.best_streak, p.streak)}
               </div>
             </div>
           );
@@ -129,11 +135,11 @@ export default async function UsPage() {
       <div className="card mt-6 p-4 text-sm font-semibold text-muted">
         <div className="mb-1 font-black text-ink">Nasıl çalışır?</div>
         <ul className="list-inside list-disc space-y-1">
-          <li>Görev bitirince XP kazanırsın; XP birikince seviye atlarsın.</li>
+          <li>Görev bitirince 🥕 havuç kazanırsın. Toplam havucun arttıkça seviye atlarsın; mağazada harcaman seviyeni düşürmez.</li>
           <li>O günün tüm görevlerini bitirirsen 🔥 serin bir gün uzar.</li>
           <li>Bir gün kaçırırsan 🧊 joker otomatik devreye girer ve serini korur. Her ay 2 joker yenilenir.</li>
-          <li>7 ve 30 günlük serilerde bonus XP var.</li>
-          <li>Haftalık hedefe ikiniz birlikte ulaşırsanız ikinize de +50 XP.</li>
+          <li>7 ve 30 günlük serilerde bonus havuç var.</li>
+          <li>Haftalık hedefe ikiniz birlikte ulaşırsanız ikinize de +50 🥕.</li>
         </ul>
       </div>
     </>

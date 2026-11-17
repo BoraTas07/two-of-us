@@ -2,10 +2,10 @@
 
 import { useActionState, useState, useTransition } from "react";
 import { archiveTaskAction, saveTaskAction } from "@/app/actions";
-import { DIFFICULTY } from "@/lib/levels";
 import { TASK_EMOJIS } from "@/lib/emojis";
 import { WEEKDAYS_SHORT } from "@/lib/time";
 import { EmojiPicker, Segmented } from "./pickers";
+import CarrotSlider from "./carrot-slider";
 
 export type TaskFormValues = {
   id?: number;
@@ -83,7 +83,7 @@ export default function TaskForm({
         />
         {v.who === "both" && (
           <p className="mt-1.5 px-1 text-xs font-semibold text-muted">
-            Ortak görevi ikinizden biri bitirince ikinize de XP gelir.
+            Ortak görevi ikinizden biri bitirince ikinize de havuç gelir.
           </p>
         )}
       </div>
@@ -203,23 +203,10 @@ export default function TaskForm({
       </div>
 
       <div>
-        <Label>Zorluk (kazanılacak XP)</Label>
-        <Segmented
-          name="xp"
-          value={String(v.xp)}
-          onChange={(x) => set("xp", Number(x))}
-          options={DIFFICULTY.map((d) => ({
-            value: String(d.xp),
-            label: (
-              <span className="flex flex-col leading-tight">
-                <span>
-                  {d.emoji} {d.label}
-                </span>
-                <span className="text-xs text-xp">+{d.xp} XP</span>
-              </span>
-            ),
-          }))}
-        />
+        <Label hint="Kaydır ya da sayıyı yaz (1–200). Büyük işlere daha çok havuç ver.">
+          Kaç havuç kazandırsın?
+        </Label>
+        <CarrotSlider name="xp" value={v.xp} onChange={(n) => set("xp", n)} />
       </div>
 
       {v.who !== "both" && (
@@ -234,7 +221,7 @@ export default function TaskForm({
           <div className="flex-1">
             <div className="font-black">🤝 Partner onayı gereksin</div>
             <div className="text-xs font-semibold text-muted">
-              {v.who === "me" ? partnerName : "Sen"} onaylayınca XP verilir. Kapalıysa güvene dayalı, XP hemen gelir.
+              {v.who === "me" ? partnerName : "Sen"} onaylayınca havuçlar verilir. Kapalıysa güvene dayalı, havuçlar hemen gelir.
             </div>
           </div>
         </label>
@@ -264,8 +251,11 @@ export default function TaskForm({
           className="btn w-full bg-surface text-danger"
           disabled={archiving}
           onClick={() => {
-            if (confirm("Bu görev silinsin mi? Geçmişte kazanılan XP'ler kalır.")) {
-              startArchive(() => archiveTaskAction(v.id!));
+            if (confirm("Bu görev silinsin mi? Geçmişte kazanılan havuçlar kalır.")) {
+              startArchive(async () => {
+                const r = await archiveTaskAction(v.id!);
+                if (r?.error) alert(r.error);
+              });
             }
           }}
         >

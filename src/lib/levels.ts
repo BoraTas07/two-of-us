@@ -1,4 +1,4 @@
-// Seviye sistemi: 1. seviyeden 2.'ye 100 XP, sonra her seviye 50 XP daha fazla ister.
+// Seviye sistemi: 1. seviyeden 2.'ye 100 havuç, sonra her seviye 50 havuç daha fazla ister.
 
 export function xpToNext(level: number): number {
   return 100 + (level - 1) * 50;
@@ -6,8 +6,8 @@ export function xpToNext(level: number): number {
 
 export type LevelInfo = {
   level: number;
-  intoLevel: number; // bu seviyede toplanan XP
-  needed: number; // bir sonraki seviye için gereken XP
+  intoLevel: number; // bu seviyede toplanan havuç
+  needed: number; // bir sonraki seviye için gereken havuç
   title: string;
 };
 
@@ -34,12 +34,6 @@ export function levelFromXp(totalXp: number): LevelInfo {
   }
   return { level, intoLevel: rest, needed: xpToNext(level), title: levelTitle(level) };
 }
-
-export const DIFFICULTY = [
-  { xp: 10, label: "Kolay", emoji: "🌱" },
-  { xp: 20, label: "Orta", emoji: "💪" },
-  { xp: 40, label: "Zor", emoji: "🔥" },
-] as const;
 
 /** Her ay verilen seri koruma jokeri sayısı */
 export const MONTHLY_FREEZES = 2;

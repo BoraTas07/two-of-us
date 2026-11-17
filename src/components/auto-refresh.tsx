@@ -17,11 +17,16 @@ export default function AutoRefresh({ every = 20000 }: { every?: number }) {
     const tick = () => {
       if (document.visibilityState === "visible") router.refresh();
     };
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === "refresh") router.refresh();
+    };
+    navigator.serviceWorker?.addEventListener("message", onMessage);
     const id = setInterval(tick, every);
     document.addEventListener("visibilitychange", tick);
     return () => {
       clearInterval(id);
       document.removeEventListener("visibilitychange", tick);
+      navigator.serviceWorker?.removeEventListener("message", onMessage);
     };
   }, [router, every]);
   return null;

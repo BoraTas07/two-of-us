@@ -29,6 +29,10 @@ export type PushMessage = {
   body: string;
   url?: string;
   tag?: string;
+  /** Bildirim üzerindeki butonlar (Android'de görünür; iPhone desteklemiyor) */
+  actions?: { action: string; title: string }[];
+  /** Butonlara basınca sunucuya gönderilecek imzalı işlem anahtarı */
+  token?: string;
 };
 
 export async function saveSubscription(

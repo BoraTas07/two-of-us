@@ -8,6 +8,8 @@ export type CelebrateDetail = {
   pending?: boolean;
   levelUp?: number | null;
   badges?: { emoji: string; name: string; description: string }[];
+  /** Genel bilgi penceresi (ör. mağazadan alışveriş) */
+  notice?: { emoji: string; title: string; body: string };
   goalReached?: boolean;
   x?: number;
   y?: number;
@@ -33,7 +35,7 @@ export default function Celebration() {
 
       if (d.xp) {
         const id = Date.now() + Math.random();
-        setFloats((f) => [...f, { id, text: d.pending ? "⏳ Onay bekliyor" : `+${d.xp} XP`, x, y }]);
+        setFloats((f) => [...f, { id, text: d.pending ? "⏳ Onay bekliyor" : `+${d.xp} 🥕`, x, y }]);
         setTimeout(() => setFloats((f) => f.filter((i) => i.id !== id)), 1200);
       }
       if (!d.pending && d.xp && !reduce) {
@@ -58,13 +60,14 @@ export default function Celebration() {
           body: "Harika gidiyorsun, yeni seviyeye ulaştın.",
           color: "var(--xp)",
         });
+      if (d.notice) modals.push({ ...d.notice, color: "var(--sage)" });
       for (const b of d.badges ?? [])
         modals.push({ emoji: b.emoji, title: `Yeni rozet: ${b.name}`, body: b.description, color: "var(--brand)" });
       if (d.goalReached)
         modals.push({
           emoji: "🏆",
           title: "Haftalık hedef tamam!",
-          body: "Birlikte başardınız. İkinize de bonus XP!",
+          body: "Birlikte başardınız. İkinize de bonus havuç!",
           color: "var(--rose)",
         });
       if (modals.length) {

@@ -98,3 +98,29 @@ describe("streak", () => {
     expect(r.state.freezes).toBe(1);
   });
 });
+
+import { SLIDER_STEPS, carrotsToPosition, positionToCarrots, snapCarrots } from "./carrots";
+
+describe("havuç çubuğu", () => {
+  it("uçlar ve adımlar", () => {
+    expect(positionToCarrots(0)).toBe(1);
+    expect(positionToCarrots(SLIDER_STEPS)).toBe(200);
+    expect(snapCarrots(37)).toBe(35);
+    expect(snapCarrots(123)).toBe(120);
+  });
+  it("çubuk monoton artar ve geri dönüşüm tutarlı", () => {
+    let prev = 0;
+    for (let p = 0; p <= SLIDER_STEPS; p++) {
+      const v = positionToCarrots(p);
+      expect(v).toBeGreaterThanOrEqual(prev);
+      prev = v;
+    }
+    for (const v of [1, 5, 10, 25, 50, 100, 150, 200]) {
+      expect(positionToCarrots(carrotsToPosition(v))).toBe(v);
+    }
+  });
+  it("1-20 arası her değer çubukla seçilebilir", () => {
+    const reachable = new Set(Array.from({ length: SLIDER_STEPS + 1 }, (_, p) => positionToCarrots(p)));
+    for (let v = 1; v <= 19; v++) expect(reachable.has(v)).toBe(true);
+  });
+});

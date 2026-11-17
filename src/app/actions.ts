@@ -13,8 +13,10 @@ import {
   type CompleteResult,
 } from "@/lib/game";
 import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
+import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/shop";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
+import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
 
 const refresh = () => revalidatePath("/", "layout");
 
@@ -128,7 +130,10 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
   if (!["once", "recurring", "habit"].includes(kind)) return { error: "Görev tipi seç." };
   const who = String(form.get("who"));
   const assignee = who === "me" ? me.id : who === "partner" ? partner.id : null;
-  const xp = [10, 20, 40].includes(Number(form.get("xp"))) ? Number(form.get("xp")) : 10;
+  const xpRaw = Number(form.get("xp"));
+  if (!Number.isInteger(xpRaw) || xpRaw < MIN_CARROTS || xpRaw > MAX_CARROTS)
+    return { error: `Havuç ${MIN_CARROTS} ile ${MAX_CARROTS} arasında olmalı.` };
+  const xp = xpRaw;
   const requiresApproval = assignee !== null && form.get("approval") === "on";
   const remind = String(form.get("remind") ?? "");
   const remindTime = /^\d{2}:\d{2}$/.test(remind) ? remind : null;
@@ -156,7 +161,8 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
 
   if (id) {
     const existing = await getTask(id);
-    if (!existing) return { error: "Görev bulunamadı." };
+    if (!existing || existing.archived) return { error: "Görev bulunamadı." };
+    if (existing.creator_id !== me.id) return { error: "Bu görevi sadece oluşturan kişi değiştirebilir." };
     await sql`
       update tasks set title = ${title}, emoji = ${emoji}, notes = ${notes}, kind = ${kind},
         assignee_id = ${assignee}, xp = ${xp}, requires_approval = ${requiresApproval},
@@ -172,7 +178,7 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
     if (assignee !== me.id) {
       notifyLater(partner.id, {
         title: assignee === null ? `💞 ${me.name} ortak görev ekledi` : `📝 ${me.name} sana görev verdi`,
-        body: `${emoji} ${title} (+${xp} XP)`,
+        body: `${emoji} ${title} (+${xp} 🥕)`,
         url: "/",
         tag: `new-task`,
       });
@@ -183,7 +189,9 @@ export async function saveTaskAction(_: FormState, form: FormData): Promise<Form
 }
 
 export async function archiveTaskAction(id: number) {
-  await requireUser();
+  const { me } = await requireUser();
+  const t = await getTask(id);
+  if (!t || t.creator_id !== me.id) return { error: "Bu görevi sadece oluşturan kişi silebilir." };
   await sql`update tasks set archived = true where id = ${id}`;
   refresh();
   redirect("/gorevler");
@@ -251,4 +259,47 @@ export async function nudgePartnerAction() {
     tag: "nudge",
   });
   return { sent: n };
+}
+
+// ---------------------------------------------------------------- mağaza
+
+export async function saveRewardAction(_: FormState, form: FormData): Promise<FormState> {
+  const { me, partner } = await requireUser();
+  const title = String(form.get("title") ?? "").trim().slice(0, 60);
+  if (!title) return { error: "Ödülün bir adı olmalı." };
+  const cost = Number(form.get("cost"));
+  if (!Number.isInteger(cost) || cost < 1 || cost > 10000) return { error: "Fiyat 1 ile 10.000 havuç arasında olmalı." };
+  const forWho = form.get("forWho") === "partner" ? "partner" : "me";
+  const err = await saveReward(me, partner, {
+    id: Number(form.get("id") || 0) || undefined,
+    title,
+    emoji: String(form.get("emoji") || "🎁").slice(0, 8),
+    cost,
+    forWho,
+  });
+  if (err) return { error: err };
+  refresh();
+  redirect("/magaza");
+}
+
+export async function archiveRewardAction(id: number) {
+  const { me } = await requireUser();
+  const err = await archiveReward(me, id);
+  if (err) return { error: err };
+  refresh();
+  redirect("/magaza");
+}
+
+export async function buyRewardAction(id: number) {
+  const { me, partner } = await requireUser();
+  const r = await buyReward(me, partner, id);
+  refresh();
+  return r;
+}
+
+export async function fulfillAction(purchaseId: number) {
+  const { me } = await requireUser();
+  const err = await fulfillPurchase(me, purchaseId);
+  refresh();
+  return err ? { error: err } : { ok: true };
 }

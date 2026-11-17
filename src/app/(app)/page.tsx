@@ -8,6 +8,7 @@ import PendingCard from "@/components/pending-card";
 import PushBanner from "@/components/push-banner";
 import NudgeButton from "@/components/nudge-button";
 import { colorOf } from "@/lib/types";
+import { pendingRewardCounts } from "@/lib/shop";
 
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
@@ -20,6 +21,7 @@ function greeting() {
 export default async function TodayPage() {
   const { me, partner } = await requireUser();
   const v = await todayView(me, partner);
+  const rewards = await pendingRewardCounts(me.id);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -61,15 +63,26 @@ export default async function TodayPage() {
 
       <PushBanner />
 
+      {rewards.toFulfill > 0 && (
+        <Link href="/magaza" className="card mt-3 flex items-center gap-3 bg-rose-soft p-3">
+          <span className="text-3xl">🎀</span>
+          <div className="flex-1">
+            <div className="font-black">{partner.name} bir hediyeni aldı</div>
+            <div className="text-sm font-semibold text-muted">Yerine getirince mağazadan &quot;Teslim ettim&quot; de.</div>
+          </div>
+          <span className="font-black text-brand">›</span>
+        </Link>
+      )}
+
       {v.pending.length > 0 && (
-        <>
+        <div id="onay" className="scroll-mt-24">
           <SectionTitle>🙋 {partner.name} onayını bekliyor</SectionTitle>
           <div className="space-y-2">
             {v.pending.map((p) => (
               <PendingCard key={p.id} p={p} partnerName={partner.name} />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       <SectionTitle right={<Link href="/gorevler/yeni" className="text-sm font-extrabold text-brand">+ Ekle</Link>}>
@@ -127,7 +140,7 @@ export default async function TodayPage() {
             </summary>
             <div className="mt-2 space-y-2">
               {v.theirs.map((t) => (
-                <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} readOnly />
+                <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} />
               ))}
             </div>
           </details>
@@ -139,7 +152,7 @@ export default async function TodayPage() {
         <div className="flex items-center justify-between font-black">
           <span>🏆 Haftalık ortak hedef</span>
           <span className="text-sm text-muted">
-            {Math.min(v.goal.total, v.goal.target)}/{v.goal.target} XP
+            {Math.min(v.goal.total, v.goal.target)}/{v.goal.target} 🥕
           </span>
         </div>
         <div className="mt-2">
