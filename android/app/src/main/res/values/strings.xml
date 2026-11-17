@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Two Of Us Widget</string>
+    <string name="widget_desc">Bugünkü görevlerin, serin, havucun ve partnerinin durumu</string>
+</resources>

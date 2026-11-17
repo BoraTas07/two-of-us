@@ -97,3 +97,19 @@ Uygulamanın her dakika "saati gelen hatırlatma var mı?" diye bakması gerekiy
   saatinin güncel olduğundan emin ol.
 - **PIN'i unuttum** → Partnerin giriş yapmış haldeyse sorun yok ama PIN sıfırlama ekranı yok;
   Supabase → Table Editor → `profiles` tablosunda ilgili satırı bana (Claude'a) sorarak düzeltebilirsin.
+
+## 6. Ana ekran widget'ı (isteğe bağlı)
+
+Uygulamada **Profil & Ayarlar → 📱 Ana ekran widget'ı** bölümündeki adımları izle. Widget bugünkü
+görevlerini, serini, havucunu, seviyeni ve partnerinin durumunu gösterir; dokununca uygulama açılır.
+
+- **iPhone:** App Store'dan ücretsiz **Scriptable** uygulamasını indir, profildeki "Script'i kopyala" ile
+  kopyaladığını Scriptable'da yeni script olarak yapıştır, ana ekrana Scriptable widget'ı ekleyip script
+  olarak "Two Of Us"ı seç.
+- **Android:** Profildeki butonla küçük widget uygulamasını (APK) indirip kur, "Android widget'ını bağla"ya
+  bas, sonra ana ekrana uzun basıp Widget'lar → Two Of Us.
+
+Widget bağlantısı sana özeldir. Paylaştıysan "Bağlantıyı yenile" ile eskisini geçersiz kılabilirsin.
+
+**Geliştirici notu:** Android widget kaynak kodu `android/` klasöründe. Yeniden derlemek için
+`android/build.sh` (JDK 17+, Gradle 8.13+, Android SDK 35 gerekir); çıktı `public/two-of-us-widget.apk`.

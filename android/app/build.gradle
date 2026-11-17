@@ -1,0 +1,42 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "app.twoofus.widget"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "app.twoofus.widget"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Kişisel uygulama: sabit imza, böylece yeni sürümler eskisinin üstüne kurulabilir
+    signingConfigs {
+        release {
+            storeFile file("../twoofus.keystore")
+            storePassword "twoofus-widget"
+            keyAlias "twoofus"
+            keyPassword "twoofus-widget"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+}

@@ -129,3 +129,37 @@ export async function verifyAction(
   if (Number(exp) < Date.now() / 1000) return null;
   return { kind, profileId: Number(pid), id: Number(id) };
 }
+
+// ---------------------------------------------------------------- widget bağlantısı
+// Ana ekran widget'ının (iPhone Scriptable / Android) salt-okunur veri çekmesi için kişiye özel,
+// süresiz anahtar. "Bağlantıyı yenile" ile nonce değişir ve eski bağlantılar çalışmaz olur.
+
+async function widgetNonce(profileId: number, renew = false): Promise<string> {
+  await ensureSchema();
+  if (!renew) {
+    const [r] = await sql<{ widget_nonce: string | null }[]>`select widget_nonce from profiles where id = ${profileId}`;
+    if (r?.widget_nonce) return r.widget_nonce;
+  }
+  const nonce = randomBytes(9).toString("base64url");
+  await sql`update profiles set widget_nonce = ${nonce} where id = ${profileId}`;
+  return nonce;
+}
+
+export async function widgetToken(profileId: number, renew = false): Promise<string> {
+  const nonce = await widgetNonce(profileId, renew);
+  return `w.${profileId}.${sign(`w.${profileId}.${nonce}`, await secret())}`;
+}
+
+export async function verifyWidgetToken(token: string): Promise<number | null> {
+  const parts = String(token).split(".");
+  if (parts.length !== 3 || parts[0] !== "w") return null;
+  const pid = Number(parts[1]);
+  if (!Number.isInteger(pid)) return null;
+  await ensureSchema();
+  const [r] = await sql<{ widget_nonce: string | null }[]>`select widget_nonce from profiles where id = ${pid}`;
+  if (!r?.widget_nonce) return null;
+  const expected = sign(`w.${pid}.${r.widget_nonce}`, await secret());
+  const a = Buffer.from(parts[2]);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b) ? pid : null;
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F4EEE5</color>
+    <color name="ink">#3B332D</color>
+    <color name="muted">#877B6F</color>
+    <color name="brand">#A65D3C</color>
+    <color name="honey">#B9893A</color>
+    <color name="sage">#6E8A5D</color>
+    <color name="fire">#C4692F</color>
+    <color name="track">#2EA65D3C</color>
+</resources>

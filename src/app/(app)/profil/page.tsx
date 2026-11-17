@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { logoutAction } from "@/app/actions";
-import { requireUser } from "@/lib/auth";
+import { requireUser, widgetToken } from "@/lib/auth";
+import { scriptableSource } from "@/lib/widget-scriptable";
+import WidgetSetup from "@/components/widget-setup";
 import { getConfig, sql } from "@/lib/db";
 import { cronKey, vapidPublicKey } from "@/lib/push";
 import { SectionTitle } from "@/components/ui";
@@ -16,6 +18,7 @@ export default async function ProfilePage() {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const cronUrl = `${proto}://${host}/api/cron?key=${await cronKey()}`;
+  const widgetUrl = `${proto}://${host}/api/widget?t=${encodeURIComponent(await widgetToken(me.id))}`;
   const lastRun = await getConfig("cron_last_run");
   const partnerSubs = await sql`select 1 from push_subscriptions where profile_id = ${partner.id} limit 1`;
 
@@ -41,6 +44,13 @@ select cron.schedule('ikimiz-hatirlatma', '* * * * *',
             Bildirimler her cihazda ayrı açılır. {partner.name}:{" "}
             {partnerSubs.length ? "✅ en az bir cihazda açık" : "❌ henüz açmamış"}
           </p>
+        </div>
+      </section>
+
+      <section id="widget">
+        <SectionTitle>📱 Ana ekran widget&apos;ı</SectionTitle>
+        <div className="card p-4">
+          <WidgetSetup dataUrl={widgetUrl} script={scriptableSource(widgetUrl)} />
         </div>
       </section>
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { allProfiles, endSession, hashPin, requireUser, startSession, verifyPin } from "@/lib/auth";
+import { allProfiles, endSession, hashPin, requireUser, startSession, verifyPin, widgetToken } from "@/lib/auth";
 import { ensureSchema, setConfig, sql, txGuard } from "@/lib/db";
 import {
   completeSubtask,
@@ -394,4 +394,12 @@ export async function resolveObjectionAction(id: number, accept: boolean, note: 
   const err = await resolveObjection(me, id, accept, note);
   refresh();
   return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- widget
+
+export async function renewWidgetAction() {
+  const { me } = await requireUser();
+  await widgetToken(me.id, true);
+  refresh();
 }
