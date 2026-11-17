@@ -7,15 +7,18 @@ import { balanceOf } from "@/lib/shop";
 import BottomNav from "@/components/bottom-nav";
 import AutoRefresh from "@/components/auto-refresh";
 import Celebration from "@/components/celebration";
+import EmojiInbox from "@/components/emoji-inbox";
+import { unseenEmojis } from "@/lib/emoji-server";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   await requireUser();
   // Geçmiş günleri seriye işle (zamanlayıcı çalışmasa bile seri doğru kalır)
   await evaluateStreaks();
-  const { me } = await requireUser();
+  const { me, partner } = await requireUser();
   const state = await loadState();
   const s = await personSummary(me, state, await xpTotals());
   const balance = await balanceOf(me.id);
+  const unseen = await unseenEmojis(me.id);
 
   return (
     <div className="mx-auto min-h-dvh max-w-md">
@@ -50,6 +53,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav />
       <AutoRefresh />
       <Celebration />
+      <EmojiInbox
+        unseen={unseen.map((m) => ({ id: m.id, emoji: m.emoji }))}
+        partnerName={partner.name}
+        partnerEmoji={partner.emoji}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
 import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
 import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/shop";
 import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
+import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -404,4 +405,19 @@ export async function renewWidgetAction() {
   const { me } = await requireUser();
   await widgetToken(me.id, true);
   refresh();
+}
+
+// ---------------------------------------------------------------- emojiler
+
+export async function sendEmojiAction(emoji: string) {
+  const { me, partner } = await requireUser();
+  const err = await sendEmoji(me, partner, emoji);
+  if (err) return { error: err };
+  refresh();
+  return { ok: true };
+}
+
+export async function markEmojisSeenAction(ids: number[]) {
+  const { me } = await requireUser();
+  await markEmojisSeen(me.id, ids.filter((n) => Number.isInteger(n)).slice(0, 50));
 }

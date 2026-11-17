@@ -10,6 +10,8 @@ import NudgeButton from "@/components/nudge-button";
 import { colorOf } from "@/lib/types";
 import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
+import { recentEmojis } from "@/lib/emoji-server";
+import EmojiBar from "@/components/emoji-bar";
 
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
@@ -24,6 +26,7 @@ export default async function TodayPage() {
   const v = await todayView(me, partner);
   const rewards = await pendingRewardCounts(me.id);
   const toAnswer = await objectionsToAnswer(me.id);
+  const recent = await recentEmojis(6);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -174,6 +177,7 @@ export default async function TodayPage() {
           </details>
         )}
         {!v.partner.todayDone && v.partner.todayCount.due > 0 && <NudgeButton name={partner.name} />}
+        <EmojiBar meId={me.id} partnerName={partner.name} recent={recent} />
       </div>
 
       <Link href="/biz" className="card mt-6 block p-4">

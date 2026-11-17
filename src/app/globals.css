@@ -210,11 +210,57 @@ h2 {
   animation: nudge 0.35s ease-in-out 1;
 }
 
+@keyframes emoji-rise {
+  0% {
+    transform: translate(-50%, 0) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -10px) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -150px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes emoji-big {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1);
+  }
+  85% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+}
+
+.animate-emoji-rise {
+  animation: emoji-rise 1.6s ease-out forwards;
+}
+.animate-emoji-big {
+  animation: emoji-big 2.4s ease-in-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pop,
   .animate-flicker,
   .animate-wiggle,
-  .animate-float-up {
+  .animate-float-up,
+  .animate-emoji-rise,
+  .animate-emoji-big {
     animation: none;
   }
 }
