@@ -168,6 +168,9 @@ create table if not exists objections (
   resolved_at timestamptz
 );
 create index if not exists objections_task on objections (task_id);
+-- İtiraz belirli bir alt göreve (adıma) yapılabilir; boşsa ana göreve/bonusa
+alter table objections add column if not exists
+  subtask_id int references subtasks(id) on delete cascade;
 
 create table if not exists rewards (
   id serial primary key,

@@ -72,7 +72,12 @@ export default async function TodayPage() {
             <div className="font-black">{partner.name} itiraz etti</div>
             <div className="truncate text-sm font-semibold text-muted">
               {o.emoji} {o.title} ·{" "}
-              {o.kind === "amount" ? `${o.old_xp} yerine ${o.proposed_xp} 🥕 öneriyor` : "görevin kendisine"}
+              {o.subtask_id ? `"${o.sub_title}" adımı · ` : o.has_subs && o.kind === "amount" ? "Bonus · " : ""}
+              {o.kind === "amount"
+                ? `${o.old_xp} yerine ${o.proposed_xp} 🥕 öneriyor`
+                : o.subtask_id
+                  ? "kaldırılsın"
+                  : "görevin kendisine"}
             </div>
           </div>
           <span className="font-black text-brand">›</span>

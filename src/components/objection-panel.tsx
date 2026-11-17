@@ -6,15 +6,17 @@ import type { ObjectionView } from "@/lib/objections";
 import CarrotSlider from "./carrot-slider";
 import { Segmented } from "./pickers";
 
-function describe(o: ObjectionView) {
-  return o.kind === "amount" ? `Havuç: ${o.old_xp} → ${o.proposed_xp} 🥕 önerisi` : "Görevin kendisine itiraz";
+function describe(o: ObjectionView, hasSubs: boolean) {
+  const target = o.subtask_id ? `"${o.sub_title}" adımı` : hasSubs ? "Bonus" : "";
+  if (o.kind === "amount") return `${target ? target + " · " : ""}Havuç: ${o.old_xp} → ${o.proposed_xp} 🥕 önerisi`;
+  return o.subtask_id ? `${target} kaldırılsın` : "Görevin kendisine itiraz";
 }
 
 export default function ObjectionPanel({
   taskId,
   isCreator,
   currentXp,
-  hasSubtasks,
+  subtasks,
   open,
   last,
   meId,
@@ -23,7 +25,7 @@ export default function ObjectionPanel({
   taskId: number;
   isCreator: boolean;
   currentXp: number;
-  hasSubtasks: boolean;
+  subtasks: { id: number; title: string; xp: number }[];
   open: ObjectionView | null;
   last: ObjectionView | null;
   meId: number;
@@ -31,6 +33,11 @@ export default function ObjectionPanel({
 }) {
   const [showForm, setShowForm] = useState(false);
   const [kind, setKind] = useState<"task" | "amount">("task");
+  const hasSubtasks = subtasks.length > 0;
+  // Hedef: "" = ana görev / bonus, yoksa adımın id'si
+  const [target, setTarget] = useState("");
+  const targetSub = subtasks.find((x) => String(x.id) === target);
+  const targetXp = targetSub ? targetSub.xp : currentXp;
   const [proposed, setProposed] = useState(currentXp);
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -39,7 +46,7 @@ export default function ObjectionPanel({
 
   const lastLine = last && (
     <p className="px-1 text-xs font-semibold text-muted">
-      Son itiraz ({describe(last)}): {last.status === "kabul" ? "kabul edildi ✅" : "reddedildi ❌"}
+      Son itiraz ({describe(last, hasSubtasks)}): {last.status === "kabul" ? "kabul edildi ✅" : "reddedildi ❌"}
       {last.response ? ` — "${last.response}"` : ""}
     </p>
   );
@@ -51,7 +58,7 @@ export default function ObjectionPanel({
       <div className="space-y-2">
         <div className="card space-y-2 bg-warn-soft p-4">
           <div className="font-black">⚖️ {mine ? "İtirazın cevap bekliyor" : `${partnerName} itiraz etti`}</div>
-          <div className="text-sm font-semibold">{describe(open)}</div>
+          <div className="text-sm font-semibold">{describe(open, hasSubtasks)}</div>
           {open.reason && <p className="rounded-xl bg-surface p-3 text-sm">&ldquo;{open.reason}&rdquo;</p>}
 
           {mine && (
@@ -75,7 +82,9 @@ export default function ObjectionPanel({
               />
               <p className="text-xs font-semibold text-muted">
                 {open.kind === "task"
-                  ? "Kabul edersen görev kaldırılır."
+                  ? open.subtask_id
+                    ? "Kabul edersen bu adım kaldırılır."
+                    : "Kabul edersen görev kaldırılır."
                   : `Kabul edersen havuç ${open.proposed_xp} 🥕 olur (sonraki tamamlamalar için).`}
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -132,6 +141,28 @@ export default function ObjectionPanel({
               Vazgeç
             </button>
           </div>
+          {hasSubtasks && (
+            <label className="block">
+              <span className="mb-1.5 block px-1 text-sm font-semibold text-muted">Neye itiraz ediyorsun?</span>
+              <select
+                className="input"
+                name="subtaskId"
+                value={target}
+                onChange={(e) => {
+                  setTarget(e.target.value);
+                  const sub = subtasks.find((x) => String(x.id) === e.target.value);
+                  setProposed(sub ? sub.xp : currentXp);
+                }}
+              >
+                <option value="">{kind === "amount" ? `Hepsini bitirme bonusu (${currentXp} 🥕)` : "Görevin tamamı"}</option>
+                {subtasks.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    Adım: {x.title} ({x.xp} 🥕)
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <Segmented
             name="kind"
             value={kind}
@@ -144,16 +175,23 @@ export default function ObjectionPanel({
           {kind === "amount" && (
             <div>
               <p className="mb-1.5 px-1 text-sm font-semibold text-muted">
-                Şu an {currentXp} 🥕. Sence kaç olmalı?
+                {targetSub ? `"${targetSub.title}" adımı` : hasSubtasks ? "Bonus" : "Şu an"} {targetXp} 🥕. Sence kaç
+                olmalı?
               </p>
-              <CarrotSlider name="proposed" value={proposed} onChange={setProposed} allowZero={hasSubtasks} />
+              <CarrotSlider name="proposed" value={proposed} onChange={setProposed} allowZero={hasSubtasks && !targetSub} />
             </div>
           )}
           <textarea
             className="input min-h-20 text-sm"
             name="reason"
             maxLength={300}
-            placeholder={kind === "task" ? "Neden bu görev olmamalı ya da değişmeli?" : "Neden? (isteğe bağlı)"}
+            placeholder={
+              kind === "task"
+                ? targetSub
+                  ? "Bu adım neden olmamalı?"
+                  : "Neden bu görev olmamalı ya da değişmeli?"
+                : "Neden? (isteğe bağlı)"
+            }
             required={kind === "task"}
           />
           {state?.error && <p className="text-sm font-semibold text-danger">{state.error}</p>}

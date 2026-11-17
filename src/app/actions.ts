@@ -371,6 +371,7 @@ export async function objectAction(_: FormState, form: FormData): Promise<FormSt
   const proposedRaw = form.get("proposed");
   const err = await createObjection(me, {
     taskId: Number(form.get("taskId")),
+    subtaskId: Number(form.get("subtaskId")) || null,
     kind,
     reason: String(form.get("reason") ?? ""),
     proposed: kind === "amount" && proposedRaw !== null && proposedRaw !== "" ? Number(proposedRaw) : null,

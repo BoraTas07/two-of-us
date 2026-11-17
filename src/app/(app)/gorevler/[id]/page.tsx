@@ -52,7 +52,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
               taskId={t.id}
               isCreator={t.creator_id === me.id}
               currentXp={t.xp}
-              hasSubtasks={subs.length > 0}
+              subtasks={subs.map((x) => ({ id: x.id, title: x.title, xp: x.xp }))}
               open={objections.open}
               last={objections.last}
               meId={me.id}
