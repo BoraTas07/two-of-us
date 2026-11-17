@@ -140,7 +140,14 @@ export default async function TodayPage() {
             </summary>
             <div className="mt-2 space-y-2">
               {v.theirs.map((t) => (
-                <TaskCard key={t.id} item={t} me={people.me} partner={people.partner} today={v.today} />
+                <TaskCard
+                  key={t.id}
+                  item={t}
+                  me={people.me}
+                  partner={people.partner}
+                  today={v.today}
+                  subsOpen={false}
+                />
               ))}
             </div>
           </details>
