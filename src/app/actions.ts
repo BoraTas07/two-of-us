@@ -19,6 +19,7 @@ import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/sho
 import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
 import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
 import { requestLocation, saveLocation, setSharing } from "@/lib/location";
+import { likeSong, removeTodaySong, shareSong } from "@/lib/songs";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -448,5 +449,32 @@ export async function updateLocationAction(lat: number, lng: number, accuracy: n
 export async function requestLocationAction() {
   const { me, partner } = await requireUser();
   const err = await requestLocation(me, partner);
+  return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- günün şarkısı
+
+export async function shareSongAction(_: FormState, form: FormData): Promise<FormState> {
+  const { me, partner } = await requireUser();
+  const err = await shareSong(me, partner, {
+    url: String(form.get("url") ?? ""),
+    title: String(form.get("title") ?? ""),
+    note: String(form.get("note") ?? ""),
+  });
+  if (err) return { error: err };
+  refresh();
+  return { ok: "Paylaşıldı 🎵" };
+}
+
+export async function removeSongAction() {
+  const { me } = await requireUser();
+  await removeTodaySong(me);
+  refresh();
+}
+
+export async function likeSongAction(songId: number, like: boolean) {
+  const { me } = await requireUser();
+  const err = await likeSong(me, songId, like);
+  refresh();
   return err ? { error: err } : { ok: true };
 }

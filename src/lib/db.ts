@@ -242,6 +242,22 @@ create table if not exists locations (
   updated_at timestamptz not null default now()
 );
 
+-- Günün şarkısı: kişi başına günde bir şarkı (gün içinde değiştirilebilir)
+create table if not exists songs (
+  id serial primary key,
+  profile_id int not null references profiles(id) on delete cascade,
+  day text not null,
+  url text,
+  provider text not null default 'other',
+  title text not null,
+  artist text not null default '',
+  thumb text,
+  note text not null default '',
+  liked_at timestamptz,
+  created_at timestamptz not null default now(),
+  unique (profile_id, day)
+);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -255,7 +271,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "10";
+const SCHEMA_VERSION = "11";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {

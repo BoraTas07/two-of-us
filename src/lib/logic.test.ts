@@ -124,3 +124,37 @@ describe("havuç çubuğu", () => {
     for (let v = 1; v <= 19; v++) expect(reachable.has(v)).toBe(true);
   });
 });
+
+import { parseSongLink } from "./song-link";
+
+describe("şarkı linkleri", () => {
+  it("Spotify", () => {
+    expect(parseSongLink("https://open.spotify.com/intl-tr/track/4uLU6hMCjMI75M1A2tKUQC?si=abc")).toEqual({
+      provider: "spotify",
+      embedUrl: "https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC",
+      url: "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC",
+    });
+    expect(parseSongLink("https://spotify.link/xyz")?.embedUrl).toBeNull();
+  });
+  it("YouTube ve YouTube Music", () => {
+    expect(parseSongLink("https://youtu.be/dQw4w9WgXcQ?t=10")?.embedUrl).toBe(
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+    );
+    expect(parseSongLink("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=x")?.url).toBe(
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    );
+    expect(parseSongLink("https://music.youtube.com/watch?v=dQw4w9WgXcQ")?.url).toBe(
+      "https://music.youtube.com/watch?v=dQw4w9WgXcQ",
+    );
+    expect(parseSongLink("https://m.youtube.com/shorts/dQw4w9WgXcQ")?.provider).toBe("youtube");
+    expect(parseSongLink("https://youtube.com/watch?v=kisa")).toBeNull();
+  });
+  it("Apple Music ve diğerleri", () => {
+    expect(parseSongLink("https://music.apple.com/tr/album/x/123?i=456")?.embedUrl).toBe(
+      "https://embed.music.apple.com/tr/album/x/123?i=456",
+    );
+    expect(parseSongLink("https://soundcloud.com/a/b")?.provider).toBe("other");
+    expect(parseSongLink("javascript:alert(1)")).toBeNull();
+    expect(parseSongLink("şarkı adı")).toBeNull();
+  });
+});

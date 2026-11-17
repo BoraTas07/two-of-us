@@ -12,6 +12,8 @@ import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
 import { recentEmojis } from "@/lib/emoji-server";
 import EmojiBar from "@/components/emoji-bar";
+import SongCard from "@/components/song-card";
+import { songsForDay } from "@/lib/songs";
 import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
 
 function locAgo(iso: string) {
@@ -37,6 +39,7 @@ export default async function TodayPage() {
   const rewards = await pendingRewardCounts(me.id);
   const toAnswer = await objectionsToAnswer(me.id);
   const recent = await recentEmojis(6);
+  const songs = await songsForDay(v.today);
   const [mySharing, myLoc, partnerLoc] = await Promise.all([sharingOf(me.id), locationOf(me.id), locationOf(partner.id)]);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
@@ -143,6 +146,17 @@ export default async function TodayPage() {
           </div>
         </>
       )}
+
+      <section id="sarki" className="scroll-mt-24">
+        <SectionTitle right={<Link href="/sarkilar" className="text-sm font-extrabold text-brand">Arşiv</Link>}>
+          🎵 Günün şarkısı
+        </SectionTitle>
+        <SongCard
+          mine={songs.find((x) => x.profile_id === me.id) ?? null}
+          theirs={songs.find((x) => x.profile_id === partner.id) ?? null}
+          partner={{ name: partner.name, emoji: partner.emoji }}
+        />
+      </section>
 
       <SectionTitle>{partner.name} bugün</SectionTitle>
       <div className="card p-4">
