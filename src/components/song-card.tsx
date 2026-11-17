@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState, useTransition } from "react";
-import { likeSongAction, removeSongAction, shareSongAction } from "@/app/actions";
+import { reactSongAction, removeSongAction, shareSongAction } from "@/app/actions";
+import { EMOJI_NAME, EMOJI_OPTIONS } from "@/lib/emoji";
 import { PROVIDER_LABEL, parseSongLink } from "@/lib/song-link";
 import type { Song } from "@/lib/songs";
 
@@ -92,7 +93,16 @@ export default function SongCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [busy, start] = useTransition();
-  const [liked, setLiked] = useState(theirs?.liked ?? false);
+  const [reaction, setReaction] = useState<string | null>(theirs?.reaction ?? null);
+  const [showAll, setShowAll] = useState(false);
+
+  function react(emoji: string) {
+    if (!theirs) return;
+    const next = reaction === emoji ? null : emoji;
+    setReaction(next);
+    setShowAll(false);
+    start(async () => void (await reactSongAction(theirs.id, next)));
+  }
 
   return (
     <div className="card p-4">
@@ -108,18 +118,45 @@ export default function SongCard({
           <div className="mt-2">
             <SongPlayer song={theirs} />
           </div>
-          <button
-            className={`btn mt-2 px-3 py-1.5 text-sm ${liked ? "bg-rose-soft text-ink" : "bg-surface text-muted"}`}
-            disabled={busy}
-            onClick={() =>
-              start(async () => {
-                setLiked(!liked);
-                await likeSongAction(theirs.id, !liked);
-              })
-            }
-          >
-            {liked ? "❤️ Beğendin" : "🤍 Beğen"}
-          </button>
+          <div className="mt-3">
+            <div className="mb-1 text-xs font-semibold text-muted">
+              {reaction ? `Tepkin: ${reaction} (değiştirmek ya da kaldırmak için dokun)` : "Tepki bırak"}
+            </div>
+            <div className="-mx-1 flex flex-wrap gap-1 px-1" role="group" aria-label="Şarkıya tepki">
+              {(showAll
+                ? EMOJI_OPTIONS
+                : [
+                    ...EMOJI_OPTIONS.slice(0, 7),
+                    // Seçili tepki ilk yedide değilse kısa listede de görünsün
+                    ...EMOJI_OPTIONS.slice(7).filter((o) => o.emoji === reaction),
+                  ]
+              ).map((o) => (
+                <button
+                  key={o.emoji}
+                  type="button"
+                  onClick={() => react(o.emoji)}
+                  disabled={busy}
+                  aria-pressed={reaction === o.emoji}
+                  aria-label={`Şarkıya ${o.name} bırak`}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-xl transition-transform active:scale-90 ${
+                    reaction === o.emoji ? "bg-rose-soft ring-2 ring-rose" : "bg-bg"
+                  }`}
+                >
+                  {o.emoji}
+                </button>
+              ))}
+              {!showAll && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll(true)}
+                  className="flex h-10 items-center justify-center rounded-full bg-bg px-3 text-sm font-semibold text-muted"
+                  aria-label="Tüm emojileri göster"
+                >
+                  +{EMOJI_OPTIONS.length - 7 - (EMOJI_OPTIONS.slice(7).some((o) => o.emoji === reaction) ? 1 : 0)}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <p className="text-sm font-semibold text-muted">
@@ -138,9 +175,9 @@ export default function SongCard({
           {mine.note && <p className="mt-1 text-sm italic">&ldquo;{mine.note}&rdquo;</p>}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <SongPlayer song={mine} compact />
-            {mine.liked && (
-              <span className="chip bg-rose-soft text-ink">
-                ❤️ {partner.name} beğendi
+            {mine.reaction && (
+              <span className="chip bg-rose-soft text-ink" title={EMOJI_NAME[mine.reaction] ?? ""}>
+                {mine.reaction} {partner.name} tepki verdi
               </span>
             )}
           </div>

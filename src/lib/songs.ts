@@ -1,6 +1,7 @@
 import "server-only";
 import { ensureSchema, sql } from "./db";
 import { notifyLater } from "./game";
+import { EMOJI_NAME } from "./emoji";
 import { parseSongLink, type SongProvider } from "./song-link";
 import { todayStr } from "./time";
 import type { Profile } from "./types";
@@ -15,7 +16,8 @@ export type Song = {
   artist: string;
   thumb: string | null;
   note: string;
-  liked: boolean;
+  /** Partnerin bu şarkıya bıraktığı emoji (yoksa null) */
+  reaction: string | null;
 };
 
 type Meta = { title: string; artist: string; thumb: string | null };
@@ -82,7 +84,7 @@ export async function shareSong(
             ${data.title.trim() ? "" : (meta?.artist ?? "")}, ${cleanThumb(meta?.thumb ?? null)}, ${note})
     on conflict (profile_id, day) do update set url = excluded.url, provider = excluded.provider,
       title = excluded.title, artist = excluded.artist, thumb = excluded.thumb, note = excluded.note,
-      liked_at = null, created_at = now()`;
+      liked_at = null, reaction = null, created_at = now()`;
   notifyLater(partner.id, {
     title: prev ? `🎵 ${me.name} günün şarkısını değiştirdi` : `🎵 ${me.name} günün şarkısını paylaştı`,
     body: `${title}${note ? ` — "${note}"` : ""}`,
@@ -96,13 +98,15 @@ export async function removeTodaySong(me: Profile): Promise<void> {
   await sql`delete from songs where profile_id = ${me.id} and day = ${todayStr()}`;
 }
 
-export async function likeSong(me: Profile, songId: number, like: boolean): Promise<string | null> {
+/** Partnerin şarkısına emoji tepkisi bırak; null ile kaldır */
+export async function reactSong(me: Profile, songId: number, emoji: string | null): Promise<string | null> {
+  if (emoji !== null && !EMOJI_NAME[emoji]) return "Bu emoji kullanılamıyor.";
   const [s] = await sql<{ profile_id: number; title: string }[]>`select profile_id, title from songs where id = ${songId}`;
   if (!s || s.profile_id === me.id) return "Şarkı bulunamadı.";
-  await sql`update songs set liked_at = ${like ? sql`now()` : null} where id = ${songId}`;
-  if (like) {
+  await sql`update songs set reaction = ${emoji}, liked_at = ${emoji ? sql`now()` : null} where id = ${songId}`;
+  if (emoji) {
     notifyLater(s.profile_id, {
-      title: `❤️ ${me.name} şarkını beğendi`,
+      title: `${emoji} ${me.name} şarkına tepki verdi`,
       body: s.title,
       url: "/#sarki",
       tag: `song-like-${songId}`,
@@ -113,12 +117,14 @@ export async function likeSong(me: Profile, songId: number, like: boolean): Prom
 
 export async function songsForDay(day = todayStr()): Promise<Song[]> {
   await ensureSchema();
-  return sql<Song[]>`select id, profile_id, day, url, provider, title, artist, thumb, note, liked_at is not null as liked
+  return sql<Song[]>`select id, profile_id, day, url, provider, title, artist, thumb, note,
+      coalesce(reaction, case when liked_at is not null then '❤️' end) as reaction
     from songs where day = ${day}`;
 }
 
 export async function songHistory(limit = 60): Promise<Song[]> {
   await ensureSchema();
-  return sql<Song[]>`select id, profile_id, day, url, provider, title, artist, thumb, note, liked_at is not null as liked
+  return sql<Song[]>`select id, profile_id, day, url, provider, title, artist, thumb, note,
+      coalesce(reaction, case when liked_at is not null then '❤️' end) as reaction
     from songs order by day desc, profile_id limit ${limit}`;
 }

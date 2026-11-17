@@ -50,7 +50,11 @@ export default async function SongsPage() {
                           {s.note && <p className="mt-1 text-sm italic">&ldquo;{s.note}&rdquo;</p>}
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             <SongPlayer song={s} compact />
-                            {s.liked && <span className="chip bg-rose-soft text-ink">❤️</span>}
+                            {s.reaction && (
+                              <span className="chip bg-rose-soft text-ink">
+                                {s.reaction} {s.profile_id === me.id ? partner.name : "Sen"}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

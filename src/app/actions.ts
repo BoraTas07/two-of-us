@@ -19,7 +19,7 @@ import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/sho
 import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
 import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
 import { requestLocation, saveLocation, setSharing } from "@/lib/location";
-import { likeSong, removeTodaySong, shareSong } from "@/lib/songs";
+import { reactSong, removeTodaySong, shareSong } from "@/lib/songs";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -472,9 +472,9 @@ export async function removeSongAction() {
   refresh();
 }
 
-export async function likeSongAction(songId: number, like: boolean) {
+export async function reactSongAction(songId: number, emoji: string | null) {
   const { me } = await requireUser();
-  const err = await likeSong(me, songId, like);
+  const err = await reactSong(me, songId, emoji);
   refresh();
   return err ? { error: err } : { ok: true };
 }
