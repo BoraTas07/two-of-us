@@ -8,6 +8,24 @@ import { colorOf } from "@/lib/types";
 import { loadState, personSummary } from "@/lib/views";
 import { Avatar, Flame, ProgressBar, SectionTitle } from "@/components/ui";
 import GoalEditor from "@/components/goal-editor";
+import MoodCard from "@/components/mood-card";
+import DeedCard from "@/components/deed-card";
+import SongCard from "@/components/song-card";
+import EmojiBar from "@/components/emoji-bar";
+import { deedsForDay, moodsForDay } from "@/lib/moods";
+import { songsForDay } from "@/lib/songs";
+import { unseenMoments } from "@/lib/moments";
+import { recentEmojis } from "@/lib/emoji-server";
+import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
+
+function locAgo(iso: string) {
+  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return min < 1 ? "az önce" : min < 60 ? `${min} dk önce` : min < 1440 ? `${Math.round(min / 60)} sa önce` : "1+ gün önce";
+}
+
+function km(m: number) {
+  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} km`;
+}
 
 export const metadata = { title: "Biz — Two Of Us" };
 
@@ -24,6 +42,16 @@ export default async function UsPage() {
   const [{ n: goalsDone }] = await sql<{ n: number }[]>`select count(*)::int as n from goal_weeks`;
   const badgeRows = await sql<{ profile_id: number; badge_id: string; earned_at: Date }[]>`
     select profile_id, badge_id, earned_at from profile_badges`;
+  const [moods, deeds, songs, unseenM, recent, mySharing, myLoc, partnerLoc] = await Promise.all([
+    moodsForDay(today),
+    deedsForDay(today),
+    songsForDay(today),
+    unseenMoments(me.id),
+    recentEmojis(6),
+    sharingOf(me.id),
+    locationOf(me.id),
+    locationOf(partner.id),
+  ]);
   const owned = (pid: number) => new Map(badgeRows.filter((b) => b.profile_id === pid).map((b) => [b.badge_id, b.earned_at]));
 
   return (
@@ -40,7 +68,68 @@ export default async function UsPage() {
         </div>
       </div>
 
-      <div className={`card mt-3 p-4 ${reached ? "bg-rose-soft" : ""}`}>
+      <section id="his" className="mt-3 scroll-mt-24">
+        <SectionTitle>💭 Nasıl hissediyorsunuz?</SectionTitle>
+        <MoodCard
+          mine={moods.find((x) => x.profile_id === me.id) ?? null}
+          theirs={moods.find((x) => x.profile_id === partner.id) ?? null}
+          partner={{ name: partner.name, emoji: partner.emoji }}
+        />
+      </section>
+
+      <section id="icin" className="scroll-mt-24">
+        <SectionTitle>💝 Birbiriniz için</SectionTitle>
+        <DeedCard meId={me.id} deeds={deeds} partner={{ name: partner.name, emoji: partner.emoji }} />
+      </section>
+
+      <section id="sarki" className="scroll-mt-24">
+        <SectionTitle right={<Link href="/sarkilar" className="text-sm font-extrabold text-brand">Arşiv</Link>}>
+          🎵 Günün şarkısı
+        </SectionTitle>
+        <SongCard
+          mine={songs.find((x) => x.profile_id === me.id) ?? null}
+          theirs={songs.find((x) => x.profile_id === partner.id) ?? null}
+          partner={{ name: partner.name, emoji: partner.emoji }}
+        />
+      </section>
+
+      <Link href="/sensiz" className="card mt-6 flex items-center gap-3 p-4">
+        <span className="text-3xl" aria-hidden>
+          💌
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-serif text-lg leading-tight">Sensiz İçime Sinmiyor</div>
+          <div className="truncate text-sm font-semibold text-muted">
+            {unseenM.count > 0
+              ? `${partner.name} ${unseenM.count} yeni şey paylaştı${
+                  unseenM.latest?.text ? `: “${unseenM.latest.text}”` : unseenM.latest?.has_photo ? " 📷" : ""
+                }`
+              : "Bugün ne gördün? Paylaş"}
+          </div>
+        </div>
+        {unseenM.count > 0 && <span className="chip bg-brand px-2.5 py-1 text-white">{unseenM.count}</span>}
+        <span className="font-black text-brand">›</span>
+      </Link>
+
+      <section id="emoji" className="scroll-mt-24">
+        <SectionTitle>😘 Emoji · 📍 Konum</SectionTitle>
+        <div className="card p-4">
+          <EmojiBar meId={me.id} partnerName={partner.name} recent={recent} />
+          <Link href="/konum" className="mt-3 flex items-center gap-2 rounded-xl bg-bg px-3 py-2.5 text-sm font-semibold">
+            <span className="text-lg">📍</span>
+            <span className="min-w-0 flex-1 truncate">
+              {partnerLoc
+                ? `${partner.name} · ${locAgo(partnerLoc.updatedAt)}${myLoc ? ` · ${km(distanceMeters(myLoc, partnerLoc))}` : ""}`
+                : `Konum${mySharing ? "" : " · paylaşım kapalı"}`}
+            </span>
+            {mySharing && <span className="chip bg-sage-soft text-sage-ink">Konumun açık</span>}
+            <span className="font-black text-brand">›</span>
+          </Link>
+        </div>
+      </section>
+
+      <SectionTitle>🏆 Hedef ve rozetler</SectionTitle>
+      <div className={`card p-4 ${reached ? "bg-rose-soft" : ""}`}>
         <div className="flex items-center justify-between">
           <div>
             <div className="font-black">🏆 Haftalık ortak hedef</div>

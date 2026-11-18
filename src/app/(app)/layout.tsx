@@ -9,6 +9,7 @@ import AutoRefresh from "@/components/auto-refresh";
 import Celebration from "@/components/celebration";
 import EmojiInbox from "@/components/emoji-inbox";
 import { unseenEmojis } from "@/lib/emoji-server";
+import { unreadCount } from "@/lib/notifications";
 import { sharingOf } from "@/lib/location";
 import LocationTracker from "@/components/location-tracker";
 
@@ -21,6 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const s = await personSummary(me, state, await xpTotals());
   const balance = await balanceOf(me.id);
   const unseen = await unseenEmojis(me.id);
+  const unread = await unreadCount(me.id);
   const sharingLocation = await sharingOf(me.id);
 
   return (
@@ -49,6 +51,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <span className="flex items-center text-sm font-black text-ice-ink" title="Seri koruma jokeri">
               🧊{me.freezes}
             </span>
+          </Link>
+          <Link
+            href="/bildirimler"
+            className="relative -mr-1 flex h-9 w-9 items-center justify-center rounded-full text-lg"
+            aria-label={unread ? `Bildirimler, ${unread} okunmamış` : "Bildirimler"}
+          >
+            <span aria-hidden>🔔</span>
+            {unread > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-black text-white ring-2 ring-bg">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
           </Link>
         </div>
       </header>

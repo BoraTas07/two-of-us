@@ -16,7 +16,7 @@ export default async function SongsPage() {
   return (
     <>
       <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/#sarki" className="text-2xl text-muted" aria-label="Geri">
+        <Link href="/biz#sarki" className="text-2xl text-muted" aria-label="Geri">
           ←
         </Link>
         <h1 className="text-2xl">Şarkılarımız</h1>
@@ -25,7 +25,7 @@ export default async function SongsPage() {
 
       {days.length === 0 ? (
         <div className="mt-4">
-          <Empty emoji="🎵">Henüz şarkı paylaşılmadı. Bugün sayfasından ilk şarkıyı paylaş!</Empty>
+          <Empty emoji="🎵">Henüz şarkı paylaşılmadı. Biz sekmesinden ilk şarkıyı paylaş!</Empty>
         </div>
       ) : (
         <div className="mt-4 space-y-4">

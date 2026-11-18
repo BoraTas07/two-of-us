@@ -3,6 +3,7 @@ import { allProfiles, signAction } from "@/lib/auth";
 import { activeTasks, completionFor, loadSubtasks, evaluateStreaks, indexCompletions, loadCompletions, relevantTo } from "@/lib/game";
 import { setConfig } from "@/lib/db";
 import { purgeOldPhotos } from "@/lib/photos";
+import { purgeOldNotifications } from "@/lib/notifications";
 import { moodAskTime, moodsForDay } from "@/lib/moods";
 import { cronKey, markSent, sendPush } from "@/lib/push";
 import { isDueOn } from "@/lib/recurrence";
@@ -38,6 +39,7 @@ export async function GET(req: Request) {
 
   await evaluateStreaks(today);
   await purgeOldPhotos();
+  await purgeOldNotifications();
 
   const profiles = await allProfiles();
   const tasks = await activeTasks();
@@ -80,7 +82,7 @@ export async function GET(req: Request) {
       await sendPush(p.id, {
         title: "💭 Şu an nasıl hissediyorsun?",
         body: "Bir dokunuşla seç; partnerin de görsün.",
-        url: "/#his",
+        url: "/biz#his",
         tag: "mood-ask",
       });
       sent.push(`ruh hali ${p.name}`);

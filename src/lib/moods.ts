@@ -40,8 +40,8 @@ export async function setMood(me: Profile, partner: Profile, mood: string, note:
     on conflict (profile_id, day) do update set mood = excluded.mood, note = excluded.note, updated_at = now()`;
   notifyLater(partner.id, {
     title: `${m.emoji} ${me.name} şu an ${m.label.toLocaleLowerCase("tr")} hissediyor`,
-    body: clean ? `"${clean}"` : "Bugün sayfasından görebilirsin.",
-    url: "/#his",
+    body: clean ? `"${clean}"` : "Biz sekmesinden görebilirsin.",
+    url: "/biz#his",
     tag: `mood-${me.id}`,
   });
   return null;
@@ -68,7 +68,7 @@ export async function addDeed(me: Profile, partner: Profile, emoji: string, text
   notifyLater(partner.id, {
     title: `💝 ${me.name} bugün senin için bir şey yaptı`,
     body: `${e} ${t}`,
-    url: "/#icin",
+    url: "/biz#icin",
     tag: `deed-${me.id}`,
   });
   return null;
@@ -87,7 +87,7 @@ export async function thankDeed(me: Profile, id: number): Promise<string | null>
   notifyLater(d.from_id, {
     title: `❤️ ${me.name} teşekkür etti`,
     body: `${d.emoji} ${d.text}`,
-    url: "/#icin",
+    url: "/biz#icin",
     tag: `deed-thanks-${id}`,
   });
   return null;

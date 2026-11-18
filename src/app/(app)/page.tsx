@@ -10,24 +10,7 @@ import NudgeButton from "@/components/nudge-button";
 import { colorOf } from "@/lib/types";
 import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
-import { recentEmojis } from "@/lib/emoji-server";
-import EmojiBar from "@/components/emoji-bar";
-import SongCard from "@/components/song-card";
-import { songsForDay } from "@/lib/songs";
-import { deedsForDay, moodsForDay } from "@/lib/moods";
-import { unseenMoments } from "@/lib/moments";
-import MoodCard from "@/components/mood-card";
-import DeedCard from "@/components/deed-card";
-import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
-
-function locAgo(iso: string) {
-  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  return min < 1 ? "az önce" : min < 60 ? `${min} dk önce` : min < 1440 ? `${Math.round(min / 60)} sa önce` : "1+ gün önce";
-}
-
-function km(m: number) {
-  return m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 })} km`;
-}
+import TogetherStrip from "@/components/together-strip";
 
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
@@ -42,12 +25,6 @@ export default async function TodayPage() {
   const v = await todayView(me, partner);
   const rewards = await pendingRewardCounts(me.id);
   const toAnswer = await objectionsToAnswer(me.id);
-  const recent = await recentEmojis(6);
-  const songs = await songsForDay(v.today);
-  const moods = await moodsForDay(v.today);
-  const deeds = await deedsForDay(v.today);
-  const unseenM = await unseenMoments(me.id);
-  const [mySharing, myLoc, partnerLoc] = await Promise.all([sharingOf(me.id), locationOf(me.id), locationOf(partner.id)]);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -63,6 +40,8 @@ export default async function TodayPage() {
           {greeting()}, {me.name}
         </h1>
       </div>
+
+      <TogetherStrip me={me} partner={partner} today={v.today} />
 
       <div className="card mt-3 p-4">
         <div className="flex items-center justify-between">
@@ -86,14 +65,6 @@ export default async function TodayPage() {
               : "Bir görev bitirirsen serine sayılır."}
         </p>
       </div>
-
-      <section id="his" className="mt-3 scroll-mt-24">
-        <MoodCard
-          mine={moods.find((x) => x.profile_id === me.id) ?? null}
-          theirs={moods.find((x) => x.profile_id === partner.id) ?? null}
-          partner={{ name: partner.name, emoji: partner.emoji }}
-        />
-      </section>
 
       <PushBanner />
 
@@ -162,43 +133,6 @@ export default async function TodayPage() {
         </>
       )}
 
-      <Link href="/sensiz" className="card mt-6 flex items-center gap-3 p-4">
-        <span className="text-3xl" aria-hidden>
-          💌
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="font-serif text-lg leading-tight">Sensiz İçime Sinmiyor</div>
-          <div className="truncate text-sm font-semibold text-muted">
-            {unseenM.count > 0
-              ? `${partner.name} ${unseenM.count} yeni şey paylaştı${
-                  unseenM.latest?.text ? `: “${unseenM.latest.text}”` : unseenM.latest?.has_photo ? " 📷" : ""
-                }`
-              : "Bugün ne gördün? Paylaş"}
-          </div>
-        </div>
-        {unseenM.count > 0 && (
-          <span className="chip bg-brand px-2.5 py-1 text-white" aria-label={`${unseenM.count} yeni`}>
-            {unseenM.count}
-          </span>
-        )}
-        <span className="font-black text-brand">›</span>
-      </Link>
-
-      <section id="icin" className="scroll-mt-24">
-        <SectionTitle>💝 Birbiriniz için</SectionTitle>
-        <DeedCard meId={me.id} deeds={deeds} partner={{ name: partner.name, emoji: partner.emoji }} />
-      </section>
-
-      <section id="sarki" className="scroll-mt-24">
-        <SectionTitle right={<Link href="/sarkilar" className="text-sm font-extrabold text-brand">Arşiv</Link>}>
-          🎵 Günün şarkısı
-        </SectionTitle>
-        <SongCard
-          mine={songs.find((x) => x.profile_id === me.id) ?? null}
-          theirs={songs.find((x) => x.profile_id === partner.id) ?? null}
-          partner={{ name: partner.name, emoji: partner.emoji }}
-        />
-      </section>
 
       <SectionTitle>{partner.name} bugün</SectionTitle>
       <div className="card p-4">
@@ -244,17 +178,6 @@ export default async function TodayPage() {
           </details>
         )}
         {!v.partner.todayDone && v.partner.todayCount.due > 0 && <NudgeButton name={partner.name} />}
-        <EmojiBar meId={me.id} partnerName={partner.name} recent={recent} />
-        <Link href="/konum" className="mt-3 flex items-center gap-2 rounded-xl bg-bg px-3 py-2.5 text-sm font-semibold">
-          <span className="text-lg">📍</span>
-          <span className="min-w-0 flex-1 truncate">
-            {partnerLoc
-              ? `${partner.name} · ${locAgo(partnerLoc.updatedAt)}${myLoc ? ` · ${km(distanceMeters(myLoc, partnerLoc))}` : ""}`
-              : `Konum${mySharing ? "" : " · paylaşım kapalı"}`}
-          </span>
-          {mySharing && <span className="chip bg-sage-soft text-sage-ink">Konumun açık</span>}
-          <span className="font-black text-brand">›</span>
-        </Link>
       </div>
 
       <Link href="/biz" className="card mt-6 block p-4">

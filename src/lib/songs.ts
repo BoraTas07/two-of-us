@@ -88,7 +88,7 @@ export async function shareSong(
   notifyLater(partner.id, {
     title: prev ? `🎵 ${me.name} günün şarkısını değiştirdi` : `🎵 ${me.name} günün şarkısını paylaştı`,
     body: `${title}${note ? ` — "${note}"` : ""}`,
-    url: "/#sarki",
+    url: "/biz#sarki",
     tag: `song-${me.id}`,
   });
   return null;
@@ -108,7 +108,7 @@ export async function reactSong(me: Profile, songId: number, emoji: string | nul
     notifyLater(s.profile_id, {
       title: `${emoji} ${me.name} şarkına tepki verdi`,
       body: s.title,
-      url: "/#sarki",
+      url: "/biz#sarki",
       tag: `song-like-${songId}`,
     });
   }

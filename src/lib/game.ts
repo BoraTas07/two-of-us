@@ -5,6 +5,7 @@ import { signAction } from "./auth";
 import { ensureSchema, getConfig, sql, txGuard } from "./db";
 import { GOAL_BONUS, STREAK_BONUS, levelFromXp } from "./levels";
 import { sendPush, type PushMessage } from "./push";
+import { storeNotification } from "./notifications";
 import { isDueOn } from "./recurrence";
 import { applyDay, type DayOutcome } from "./streak";
 import { addDays, daysBetween, todayStr, weekStart } from "./time";
@@ -16,7 +17,11 @@ type Sql = typeof sql;
 
 /** Bildirimi yanıt gönderildikten sonra yollar; ekran beklemez. */
 export function notifyLater(profileId: number, msg: PushMessage) {
-  after(() => sendPush(profileId, msg).then(() => undefined));
+  // Önce uygulama içi bildirim merkezine (🔔) yaz, sonra telefona gönder
+  after(async () => {
+    await storeNotification(profileId, msg);
+    await sendPush(profileId, msg);
+  });
 }
 
 export async function activeTasks(db: Sql = sql): Promise<Task[]> {

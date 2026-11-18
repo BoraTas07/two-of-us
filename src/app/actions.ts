@@ -15,6 +15,7 @@ import {
   type CompleteResult,
 } from "@/lib/game";
 import { removeSubscription, saveSubscription, sendPush } from "@/lib/push";
+import { storeNotification } from "@/lib/notifications";
 import { archiveReward, buyReward, fulfillPurchase, saveReward } from "@/lib/shop";
 import { createObjection, resolveObjection, withdrawObjection } from "@/lib/objections";
 import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
@@ -320,11 +321,9 @@ export async function testPushAction() {
 
 export async function nudgePartnerAction() {
   const { me, partner } = await requireUser();
-  const n = await sendPush(partner.id, {
-    title: `👋 ${me.name} seni dürttü`,
-    body: "Bugünkü görevlerine bir göz at 😉",
-    tag: "nudge",
-  });
+  const nudge = { title: `👋 ${me.name} seni dürttü`, body: "Bugünkü görevlerine bir göz at 😉", tag: "nudge", url: "/" };
+  await storeNotification(partner.id, nudge);
+  const n = await sendPush(partner.id, nudge);
   return { sent: n };
 }
 

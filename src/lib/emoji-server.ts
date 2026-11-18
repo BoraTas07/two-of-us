@@ -24,7 +24,7 @@ export async function sendEmoji(me: Profile, partner: Profile, emoji: string): P
   notifyLater(partner.id, {
     title: `${emoji} ${me.name} sana ${name} gönderdi`,
     body: "Two Of Us'ı açınca görebilirsin",
-    url: "/",
+    url: "/biz#emoji",
     tag: `emoji-${me.id}`,
   });
   return null;

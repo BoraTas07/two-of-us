@@ -307,6 +307,18 @@ create index if not exists moment_comments_moment on moment_comments (moment_id)
 
 alter table profiles add column if not exists moments_seen_at timestamptz;
 
+-- Uygulama içi bildirim merkezi (🔔): partnerin yaptığı her şey
+create table if not exists notifications (
+  id serial primary key,
+  profile_id int not null references profiles(id) on delete cascade,
+  title text not null,
+  body text not null default '',
+  url text not null default '/',
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+create index if not exists notifications_profile on notifications (profile_id, created_at desc);
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -320,7 +332,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "14";
+const SCHEMA_VERSION = "15";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {
