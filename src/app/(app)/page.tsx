@@ -12,6 +12,50 @@ import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
 import TogetherStrip from "@/components/together-strip";
 
+function allDoneColor(done: number, due: number) {
+  return due > 0 && done >= due ? "var(--fire)" : "var(--sage)";
+}
+
+function Ring({ done, due }: { done: number; due: number }) {
+  const r = 26;
+  const c = 2 * Math.PI * r;
+  const frac = due > 0 ? Math.min(1, done / due) : 0;
+  return (
+    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center" aria-label={`Bugün ${done}/${due} görev`}>
+      <svg viewBox="0 0 64 64" className="absolute inset-0 -rotate-90">
+        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--line)" strokeWidth="6" />
+        <circle
+          cx="32"
+          cy="32"
+          r={r}
+          fill="none"
+          stroke={allDoneColor(done, due)}
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - frac)}
+        />
+      </svg>
+      <div className="text-center leading-none">
+        <div className="text-sm font-black">
+          {done}/{due}
+        </div>
+        <div className="mt-0.5 text-[10px] font-bold text-muted">görev</div>
+      </div>
+    </div>
+  );
+}
+
+function Notice({ href, icon, tone, children }: { href: string; icon: string; tone: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm ${tone}`}>
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="min-w-0 flex-1 truncate font-semibold">{children}</span>
+      <span className="font-black text-brand">›</span>
+    </Link>
+  );
+}
+
 function greeting() {
   const h = Number(nowHM().slice(0, 2));
   if (h < 5) return "İyi geceler";
@@ -34,69 +78,39 @@ export default async function TodayPage() {
 
   return (
     <>
-      <div className="mt-3 px-1">
-        <div className="text-sm font-extrabold text-muted">{formatLong(v.today)}</div>
-        <h1 className="text-2xl font-black">
-          {greeting()}, {me.name}
-        </h1>
+      <div className="mt-3 flex items-center gap-3 px-1">
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-extrabold text-muted">{formatLong(v.today)}</div>
+          <h1 className="truncate text-2xl font-black">
+            {greeting()}, {me.name}
+          </h1>
+          <div className="mt-0.5 text-sm font-semibold text-muted">
+            {myCount.due === 0
+              ? "Bugün planlı görevin yok"
+              : allDone
+                ? "Bugünlük hepsi tamam! Serin güvende 🔥"
+                : `${myCount.due - myCount.done} görevin kaldı`}
+          </div>
+        </div>
+        <Ring done={myCount.done} due={myCount.due} />
       </div>
 
       <TogetherStrip me={me} partner={partner} today={v.today} />
 
-      <div className="card mt-3 p-4">
-        <div className="flex items-center justify-between">
-          <div className="font-black">
-            {myCount.due === 0
-              ? "Bugün planlı görevin yok"
-              : allDone
-                ? "Bugünlük hepsi tamam!"
-                : `Bugün ${myCount.done}/${myCount.due} görev`}
-          </div>
-          <Flame streak={v.me.streak} lit={v.me.todayDone} />
-        </div>
-        <div className="mt-2">
-          <ProgressBar value={myCount.done} max={Math.max(1, myCount.due)} color="var(--sage)" />
-        </div>
-        <p className="mt-2 text-sm font-semibold text-muted">
-          {v.me.todayDone
-            ? "Serin bugün için güvende 🔥"
-            : myCount.due > 0
-              ? "Hepsini bitir, serin büyüsün!"
-              : "Bir görev bitirirsen serine sayılır."}
-        </p>
+      <div className="mt-3 space-y-1.5 empty:hidden">
+        <PushBanner />
+        {toAnswer.map((o) => (
+          <Notice key={o.id} href={`/gorevler/${o.task_id}`} icon="⚖️" tone="bg-warn-soft">
+            <b>{partner.name} itiraz etti</b> · {o.emoji} {o.title}
+            {o.kind === "amount" ? ` · ${o.proposed_xp} 🥕 öneriyor` : ""}
+          </Notice>
+        ))}
+        {rewards.toFulfill > 0 && (
+          <Notice href="/magaza" icon="🎀" tone="bg-rose-soft">
+            <b>{partner.name} bir hediyeni aldı</b> · teslim edince işaretle
+          </Notice>
+        )}
       </div>
-
-      <PushBanner />
-
-      {toAnswer.map((o) => (
-        <Link key={o.id} href={`/gorevler/${o.task_id}`} className="card mt-3 flex items-center gap-3 bg-warn-soft p-3">
-          <span className="text-3xl">⚖️</span>
-          <div className="min-w-0 flex-1">
-            <div className="font-black">{partner.name} itiraz etti</div>
-            <div className="truncate text-sm font-semibold text-muted">
-              {o.emoji} {o.title} ·{" "}
-              {o.subtask_id ? `"${o.sub_title}" adımı · ` : o.has_subs && o.kind === "amount" ? "Bonus · " : ""}
-              {o.kind === "amount"
-                ? `${o.old_xp} yerine ${o.proposed_xp} 🥕 öneriyor`
-                : o.subtask_id
-                  ? "kaldırılsın"
-                  : "görevin kendisine"}
-            </div>
-          </div>
-          <span className="font-black text-brand">›</span>
-        </Link>
-      ))}
-
-      {rewards.toFulfill > 0 && (
-        <Link href="/magaza" className="card mt-3 flex items-center gap-3 bg-rose-soft p-3">
-          <span className="text-3xl">🎀</span>
-          <div className="flex-1">
-            <div className="font-black">{partner.name} bir hediyeni aldı</div>
-            <div className="text-sm font-semibold text-muted">Yerine getirince mağazadan &quot;Teslim ettim&quot; de.</div>
-          </div>
-          <span className="font-black text-brand">›</span>
-        </Link>
-      )}
 
       {v.pending.length > 0 && (
         <div id="onay" className="scroll-mt-24">
@@ -134,31 +148,32 @@ export default async function TodayPage() {
       )}
 
 
-      <SectionTitle>{partner.name} bugün</SectionTitle>
-      <div className="card p-4">
+      <div className="card mt-6 p-3">
         <div className="flex items-center gap-3">
-          <Avatar emoji={partner.emoji} color={partner.color} size={48} />
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
+          <Avatar emoji={partner.emoji} color={partner.color} size={40} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between text-sm">
               <span className="font-black">
+                {partner.name} ·{" "}
                 {v.partner.todayCount.due === 0
-                  ? "Planlı görev yok"
+                  ? "planlı görev yok"
                   : `${v.partner.todayCount.done}/${v.partner.todayCount.due} tamam`}
               </span>
-              <Flame streak={v.partner.streak} lit={v.partner.todayDone} size={18} />
+              <Flame streak={v.partner.streak} lit={v.partner.todayDone} size={15} />
             </div>
             <div className="mt-1.5">
               <ProgressBar
                 value={v.partner.todayCount.done}
                 max={Math.max(1, v.partner.todayCount.due)}
                 color={colorOf(partner.color).bg}
-                height={10}
+                height={8}
               />
             </div>
           </div>
+          {!v.partner.todayDone && v.partner.todayCount.due > 0 && <NudgeButton name={partner.name} compact />}
         </div>
         {v.theirs.length > 0 && (
-          <details className="group mt-3">
+          <details className="group mt-2">
             <summary className="cursor-pointer list-none text-sm font-extrabold text-brand">
               <span className="group-open:hidden">Görevlerini gör ▾</span>
               <span className="hidden group-open:inline">Gizle ▴</span>
@@ -177,23 +192,16 @@ export default async function TodayPage() {
             </div>
           </details>
         )}
-        {!v.partner.todayDone && v.partner.todayCount.due > 0 && <NudgeButton name={partner.name} />}
-      </div>
-
-      <Link href="/biz" className="card mt-6 block p-4">
-        <div className="flex items-center justify-between font-black">
-          <span>
-            🏆 Haftalık ortak hedef
-            <span className="block text-xs font-semibold text-muted">Sadece 💞 ortak görevler sayılır</span>
-          </span>
-          <span className="text-sm text-muted">
+        <Link href="/biz" className="mt-3 flex items-center gap-3 border-t border-line pt-3 text-sm">
+          <span className="font-black">🏆 Ortak hedef</span>
+          <div className="flex-1">
+            <ProgressBar value={v.goal.total} max={v.goal.target} color="var(--rose)" height={8} />
+          </div>
+          <span className="font-bold text-muted">
             {Math.min(v.goal.total, v.goal.target)}/{v.goal.target} 🥕
           </span>
-        </div>
-        <div className="mt-2">
-          <ProgressBar value={v.goal.total} max={v.goal.target} color="var(--rose)" />
-        </div>
-      </Link>
+        </Link>
+      </div>
     </>
   );
 }

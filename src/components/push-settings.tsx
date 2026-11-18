@@ -73,12 +73,11 @@ export function PushBannerInner() {
   if (!env || env.subscribed) return null;
   if (!env.supported && !env.ios) return null;
   return (
-    <Link href="/profil#bildirimler" className="card mt-3 flex items-center gap-3 bg-ice-soft p-3">
-      <span className="animate-wiggle text-3xl">🔔</span>
-      <div className="flex-1">
-        <div className="font-black">Hatırlatmaları aç</div>
-        <div className="text-sm font-semibold text-muted">Görev zamanı gelince telefonuna bildirim gelsin.</div>
-      </div>
+    <Link href="/profil#bildirimler" className="flex items-center gap-2.5 rounded-2xl bg-ice-soft px-3 py-2.5 text-sm">
+      <span className="animate-wiggle text-lg leading-none">🔔</span>
+      <span className="min-w-0 flex-1 truncate font-semibold">
+        <b>Hatırlatmaları aç</b> · görev saatinde bildirim gelsin
+      </span>
       <span className="font-black text-brand">›</span>
     </Link>
   );

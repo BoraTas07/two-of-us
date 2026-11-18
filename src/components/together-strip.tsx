@@ -92,24 +92,24 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
 
   return (
     <nav aria-label="Birlikte" className="-mx-4 mt-3">
-      <ul className="flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+      <ul className="flex snap-x gap-2 overflow-x-auto px-4 pt-1 pb-1 [scrollbar-width:none]">
         {items.map((it) => (
           <li key={it.href} className="snap-start">
             <Link
               href={it.href}
-              className={`relative flex h-[76px] w-[104px] flex-col justify-between rounded-2xl border px-2.5 py-2 ${
+              className={`relative flex h-[52px] w-[124px] items-center gap-2 rounded-full border py-1.5 pr-3 pl-2.5 ${
                 it.hot ? "border-brand/40 bg-brand-soft" : "border-line bg-surface"
               }`}
             >
-              <span className="text-xl leading-none" aria-hidden>
+              <span className="text-2xl leading-none" aria-hidden>
                 {it.icon}
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 leading-tight">
                 <span className="block truncate text-xs font-black">{it.title}</span>
                 <span className="block truncate text-[11px] font-semibold text-muted">{it.sub}</span>
               </span>
               {it.badge ? (
-                <span className="absolute top-1.5 right-1.5 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-black text-white">
+                <span className="absolute -top-1 right-1 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-black text-white">
                   {it.badge}
                 </span>
               ) : null}
