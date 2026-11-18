@@ -21,6 +21,7 @@ import { markEmojisSeen, sendEmoji } from "@/lib/emoji-server";
 import { requestLocation, saveLocation, setSharing } from "@/lib/location";
 import { reactSong, removeTodaySong, shareSong } from "@/lib/songs";
 import { addDeed, removeDeed, setMood, thankDeed } from "@/lib/moods";
+import { addComment, deleteComment, deleteMoment, reactMoment } from "@/lib/moments";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -507,4 +508,33 @@ export async function thankDeedAction(id: number) {
   const err = await thankDeed(me, id);
   refresh();
   return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- sensiz içime sinmiyor
+
+export async function deleteMomentAction(id: number) {
+  const { me } = await requireUser();
+  const err = await deleteMoment(me, id);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function reactMomentAction(id: number, emoji: string | null) {
+  const { me } = await requireUser();
+  const err = await reactMoment(me, id, emoji);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function commentMomentAction(id: number, text: string) {
+  const { me, partner } = await requireUser();
+  const err = await addComment(me, partner, id, text);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function deleteCommentAction(id: number) {
+  const { me } = await requireUser();
+  await deleteComment(me, id);
+  refresh();
 }

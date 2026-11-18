@@ -5,12 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** Pencereleri sayfanın en üst katmanına taşır: kart animasyonları (transform) tam ekranı bozmasın */
-function Portal({ children }: { children: React.ReactNode }) {
+export function Portal({ children }: { children: React.ReactNode }) {
   return typeof document === "undefined" ? null : createPortal(children, document.body);
 }
 
 /** Fotoğrafı telefonda küçültür (en uzun kenar 1280px, JPEG) — yükleme hızlı, veritabanı küçük kalır */
-async function compress(file: File): Promise<Blob> {
+export async function compress(file: File): Promise<Blob> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {

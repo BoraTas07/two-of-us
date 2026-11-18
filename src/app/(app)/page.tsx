@@ -15,6 +15,7 @@ import EmojiBar from "@/components/emoji-bar";
 import SongCard from "@/components/song-card";
 import { songsForDay } from "@/lib/songs";
 import { deedsForDay, moodsForDay } from "@/lib/moods";
+import { unseenMoments } from "@/lib/moments";
 import MoodCard from "@/components/mood-card";
 import DeedCard from "@/components/deed-card";
 import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
@@ -45,6 +46,7 @@ export default async function TodayPage() {
   const songs = await songsForDay(v.today);
   const moods = await moodsForDay(v.today);
   const deeds = await deedsForDay(v.today);
+  const unseenM = await unseenMoments(me.id);
   const [mySharing, myLoc, partnerLoc] = await Promise.all([sharingOf(me.id), locationOf(me.id), locationOf(partner.id)]);
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
@@ -159,6 +161,28 @@ export default async function TodayPage() {
           </div>
         </>
       )}
+
+      <Link href="/sensiz" className="card mt-6 flex items-center gap-3 p-4">
+        <span className="text-3xl" aria-hidden>
+          💌
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-serif text-lg leading-tight">Sensiz İçime Sinmiyor</div>
+          <div className="truncate text-sm font-semibold text-muted">
+            {unseenM.count > 0
+              ? `${partner.name} ${unseenM.count} yeni şey paylaştı${
+                  unseenM.latest?.text ? `: “${unseenM.latest.text}”` : unseenM.latest?.has_photo ? " 📷" : ""
+                }`
+              : "Bugün ne gördün? Paylaş"}
+          </div>
+        </div>
+        {unseenM.count > 0 && (
+          <span className="chip bg-brand px-2.5 py-1 text-white" aria-label={`${unseenM.count} yeni`}>
+            {unseenM.count}
+          </span>
+        )}
+        <span className="font-black text-brand">›</span>
+      </Link>
 
       <section id="icin" className="scroll-mt-24">
         <SectionTitle>💝 Birbiriniz için</SectionTitle>

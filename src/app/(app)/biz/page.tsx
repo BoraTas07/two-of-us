@@ -30,9 +30,14 @@ export default async function UsPage() {
     <>
       <div className="mt-3 flex items-center justify-between px-1">
         <h1 className="text-2xl font-black">Biz</h1>
-        <Link href="/istatistik" className="btn bg-surface py-2 text-sm text-ink">
-          📊 İstatistik
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/sensiz" className="btn bg-surface py-2 text-sm text-ink">
+            💌 Sensiz
+          </Link>
+          <Link href="/istatistik" className="btn bg-surface py-2 text-sm text-ink">
+            📊 İstatistik
+          </Link>
+        </div>
       </div>
 
       <div className={`card mt-3 p-4 ${reached ? "bg-rose-soft" : ""}`}>

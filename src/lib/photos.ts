@@ -90,7 +90,7 @@ export async function purgeOldPhotos() {
   await sql`update photos set data = null where data is not null and created_at < now() - interval '3 days'`;
 }
 
-function looksLikeImage(b: Buffer, mime: string): boolean {
+export function looksLikeImage(b: Buffer, mime: string): boolean {
   if (mime === "image/jpeg") return b[0] === 0xff && b[1] === 0xd8;
   if (mime === "image/png") return b.subarray(0, 4).toString("hex") === "89504e47";
   if (mime === "image/webp") return b.subarray(0, 4).toString() === "RIFF" && b.subarray(8, 12).toString() === "WEBP";

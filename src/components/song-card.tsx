@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { reactSongAction, removeSongAction, shareSongAction } from "@/app/actions";
-import { EMOJI_NAME, EMOJI_OPTIONS } from "@/lib/emoji";
+import { EMOJI_NAME } from "@/lib/emoji";
+import ReactionPicker from "./reaction-picker";
 import { PROVIDER_LABEL, parseSongLink } from "@/lib/song-link";
 import type { Song } from "@/lib/songs";
 
@@ -93,16 +94,6 @@ export default function SongCard({
 }) {
   const [editing, setEditing] = useState(false);
   const [busy, start] = useTransition();
-  const [reaction, setReaction] = useState<string | null>(theirs?.reaction ?? null);
-  const [showAll, setShowAll] = useState(false);
-
-  function react(emoji: string) {
-    if (!theirs) return;
-    const next = reaction === emoji ? null : emoji;
-    setReaction(next);
-    setShowAll(false);
-    start(async () => void (await reactSongAction(theirs.id, next)));
-  }
 
   return (
     <div className="card p-4">
@@ -119,43 +110,12 @@ export default function SongCard({
             <SongPlayer song={theirs} />
           </div>
           <div className="mt-3">
-            <div className="mb-1 text-xs font-semibold text-muted">
-              {reaction ? `Tepkin: ${reaction} (değiştirmek ya da kaldırmak için dokun)` : "Tepki bırak"}
-            </div>
-            <div className="-mx-1 flex flex-wrap gap-1 px-1" role="group" aria-label="Şarkıya tepki">
-              {(showAll
-                ? EMOJI_OPTIONS
-                : [
-                    ...EMOJI_OPTIONS.slice(0, 7),
-                    // Seçili tepki ilk yedide değilse kısa listede de görünsün
-                    ...EMOJI_OPTIONS.slice(7).filter((o) => o.emoji === reaction),
-                  ]
-              ).map((o) => (
-                <button
-                  key={o.emoji}
-                  type="button"
-                  onClick={() => react(o.emoji)}
-                  disabled={busy}
-                  aria-pressed={reaction === o.emoji}
-                  aria-label={`Şarkıya ${o.name} bırak`}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-xl transition-transform active:scale-90 ${
-                    reaction === o.emoji ? "bg-rose-soft ring-2 ring-rose" : "bg-bg"
-                  }`}
-                >
-                  {o.emoji}
-                </button>
-              ))}
-              {!showAll && (
-                <button
-                  type="button"
-                  onClick={() => setShowAll(true)}
-                  className="flex h-10 items-center justify-center rounded-full bg-bg px-3 text-sm font-semibold text-muted"
-                  aria-label="Tüm emojileri göster"
-                >
-                  +{EMOJI_OPTIONS.length - 7 - (EMOJI_OPTIONS.slice(7).some((o) => o.emoji === reaction) ? 1 : 0)}
-                </button>
-              )}
-            </div>
+            <ReactionPicker
+              key={theirs.id}
+              initial={theirs.reaction}
+              label="Şarkıya"
+              onChange={(e) => reactSongAction(theirs.id, e)}
+            />
           </div>
         </div>
       ) : (

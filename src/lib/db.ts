@@ -284,6 +284,29 @@ create table if not exists deeds (
 );
 create index if not exists deeds_day on deeds (day);
 
+-- "Sensiz İçime Sinmiyor": gün içinde görülüp beğenilen şeyler (kalıcı)
+create table if not exists moments (
+  id serial primary key,
+  author_id int not null references profiles(id) on delete cascade,
+  text text not null default '',
+  photo bytea,
+  photo_mime text,
+  reaction text,
+  created_at timestamptz not null default now()
+);
+create index if not exists moments_created on moments (created_at desc);
+
+create table if not exists moment_comments (
+  id serial primary key,
+  moment_id int not null references moments(id) on delete cascade,
+  author_id int not null references profiles(id) on delete cascade,
+  text text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists moment_comments_moment on moment_comments (moment_id);
+
+alter table profiles add column if not exists moments_seen_at timestamptz;
+
 create table if not exists streak_log (
   profile_id int not null references profiles(id) on delete cascade,
   day text not null,
@@ -297,7 +320,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "13";
+const SCHEMA_VERSION = "14";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {
