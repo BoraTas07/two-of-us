@@ -37,7 +37,7 @@ export default async function ShopPage() {
 
       {v.toFulfill.length > 0 && (
         <>
-          <SectionTitle>🎀 Yerine getirmen gerekenler</SectionTitle>
+          <SectionTitle>🎀 {partner.name} senden talep ediyor</SectionTitle>
           <div className="space-y-2">
             {v.toFulfill.map((p) => (
               <div key={p.id} className="card flex items-center gap-3 bg-warn-soft p-3">
@@ -45,7 +45,7 @@ export default async function ShopPage() {
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold">{p.title}</div>
                   <div className="text-xs font-semibold text-muted">
-                    {partner.name} {day(p.created_at)} aldı · {p.cost} 🥕
+                    {day(p.created_at)} talep etti · {p.cost} 🥕 karşılığında
                   </div>
                 </div>
                 <FulfillButton id={p.id} label="Teslim ettim" />

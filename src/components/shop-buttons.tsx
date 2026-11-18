@@ -28,12 +28,19 @@ export function BuyButton({
         className="btn bg-brand px-3.5 py-2 text-sm text-white"
         disabled={busy}
         onClick={() => {
-          if (!confirm(`"${title}" için ${cost} havuç harcansın mı?`)) return;
+          if (!confirm(`"${title}" için ${cost} havuç harcansın mı? Partnerine talep olarak gidecek.`)) return;
           setErr(null);
           start(async () => {
             const r = await buyRewardAction(id);
             if ("error" in r) setErr(r.error);
-            else celebrate({ notice: { emoji: r.emoji, title: `${r.title} senin!`, body: `Kalan bakiyen: ${r.balance} 🥕` } });
+            else
+              celebrate({
+                notice: {
+                  emoji: r.emoji,
+                  title: `${r.title} senin!`,
+                  body: `Talebin partnerine gitti. Kalan bakiyen: ${r.balance} 🥕`,
+                },
+              });
           });
         }}
       >

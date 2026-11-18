@@ -4,9 +4,10 @@ import { notifyLater } from "./game";
 import type { Profile } from "./types";
 
 // Mağaza: her ödülü bir kişi tanımlar ve kimin alabileceğini seçer.
-//  - "Kendime": kendine koyduğun hedef ödül (ör. "1 saat oyun"). Alınca kendin "kullandım" dersin.
-//  - "Partnerime": partnerine sunduğun hediye (ör. "Sana masaj yaparım"). Partnerin alınca
-//    sen yerine getirip "teslim ettim" dersin.
+//  - "Kendime": kendine koyduğun hedef ödül (ör. "1 saat oyun").
+//  - "Partnerime": partnerine sunduğun hediye (ör. "Sana masaj yaparım").
+// Kim tanımlarsa tanımlasın, havuçla alınan ödül partnerden talep edilir: partnere
+// "… senden şu ödülü talep ediyor" bildirimi gider, o yerine getirip "Teslim ettim" der.
 // Seviye ömür boyu kazanılan havuca göre hesaplanır; harcamak seviyeyi düşürmez.
 
 type Db = typeof sql;
@@ -159,19 +160,17 @@ export async function buyReward(
     }
     const gift = r.creator_id !== me.id;
     await db`insert into purchases (reward_id, buyer_id, giver_id, title, emoji, cost)
-             values (${r.id}, ${me.id}, ${gift ? r.creator_id : me.id}, ${r.title}, ${r.emoji}, ${r.cost})`;
+             values (${r.id}, ${me.id}, ${partner.id}, ${r.title}, ${r.emoji}, ${r.cost})`;
     bought = { title: r.title, emoji: r.emoji, cost: r.cost, gift };
     result = { ok: true, balance: balance - r.cost, title: r.title, emoji: r.emoji };
   });
   if (bought) {
     const b = bought as { title: string; emoji: string; cost: number; gift: boolean };
     notifyLater(partner.id, {
-      title: b.gift ? `🎁 ${me.name} hediyeni aldı!` : `🛍️ ${me.name} kendine ödül aldı`,
-      body: b.gift
-        ? `${b.emoji} ${b.title} (${b.cost} 🥕) — sıra sende, yerine getirince "Teslim ettim" de.`
-        : `${b.emoji} ${b.title} (${b.cost} 🥕)`,
+      title: `🎁 ${me.name} senden bir ödül talep ediyor`,
+      body: `${b.emoji} ${b.title} (${b.cost} 🥕 karşılığında) — yerine getirince "Teslim ettim" de.`,
       url: "/magaza",
-      tag: "purchase",
+      tag: `purchase-${b.title}`,
     });
   }
   return result;

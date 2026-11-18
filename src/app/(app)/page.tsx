@@ -110,7 +110,10 @@ export default async function TodayPage() {
         ))}
         {rewards.toFulfill > 0 && (
           <Notice href="/magaza" icon="🎀" tone="bg-rose-soft">
-            <b>{partner.name} bir hediyeni aldı</b> · teslim edince işaretle
+            <b>
+              {partner.name} senden {rewards.toFulfill > 1 ? `${rewards.toFulfill} ödül` : "bir ödül"} talep ediyor
+            </b>{" "}
+            · teslim edince işaretle
           </Notice>
         )}
       </div>

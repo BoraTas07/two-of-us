@@ -3,56 +3,133 @@ import type { ThemeKey } from "@/lib/themes";
 // Her temanın ekranın altında duran küçük manzarası (kartların arkasında kalır).
 
 const SNOW = "#ffffff";
-const SNOW_EDGE = "#b8c9da";
 
-function Pine({ x, y, s = 1, snow = false, lights = false, star = false, color = "#1f6b45", dark = "#17573a" }: {
-  x: number; y: number; s?: number; snow?: boolean; lights?: boolean; star?: boolean; color?: string; dark?: string;
+function jit(i: number, seed: number) {
+  const x = Math.sin(i * 91.7 + seed * 47.3) * 10000;
+  return x - Math.floor(x);
+}
+
+/** Katmanlı, dallı çam silueti (üçgen yığını değil). Karlıysa dal üstlerinde kar birikir. */
+function Pine({ x, y, h = 70, w, snow = false, color = "#1e3d35", snowColor = "#f7fafc", seed = 1, opacity = 1 }: {
+  x: number; y: number; h?: number; w?: number; snow?: boolean; color?: string; snowColor?: string; seed?: number; opacity?: number;
 }) {
-  const tiers = [
-    { ay: -64, by: -38, w: 14 },
-    { ay: -50, by: -20, w: 19 },
-    { ay: -34, by: 0, w: 25 },
-  ];
-  const bulbs = ["#e0443e", "#f2c14e", "#4f8fd8", "#e86fb0"];
+  const width = w ?? h * 0.62;
+  const tiers = Math.max(4, Math.round(h / 11));
+  const step = (h * 0.9) / tiers;
+  const side = (dir: 1 | -1) =>
+    Array.from({ length: tiers }, (_, i) => {
+      const frac = 1 - i / tiers;
+      const half = (width / 2) * Math.pow(frac, 0.95) * (0.88 + 0.22 * jit(i, seed + (dir > 0 ? 7 : 0)));
+      const ty = -i * step + 2;
+      return { tip: [dir * half, ty] as const, notch: [dir * half * 0.38, ty - step * 1.12] as const };
+    });
+  const L = side(-1);
+  const R = side(1);
+  const f = (p: readonly [number, number]) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+  let d = `M-2 0 `;
+  for (const t of L) d += `L${f(t.tip)} L${f(t.notch)} `;
+  d += `L0 ${-h} `;
+  for (const t of [...R].reverse()) d += `L${f(t.notch)} L${f(t.tip)} `;
+  d += "L2 0 Z";
   return (
-    <g transform={`translate(${x} ${y}) scale(${s})`}>
-      <rect x={-3} y={-2} width={6} height={10} fill="#6b4226" />
-      {tiers.map((t, i) => (
-        <g key={i}>
-          <polygon points={`0,${t.ay} ${-t.w},${t.by} ${t.w},${t.by}`} fill={i % 2 ? dark : color} />
-          {snow && (
-            <>
-              <path
-                d={`M0 ${t.ay} L${-t.w * 0.42} ${t.ay + (t.by - t.ay) * 0.42} q${t.w * 0.21} 4 ${t.w * 0.42} 0 q${t.w * 0.21} 4 ${t.w * 0.42} 0 Z`}
-                fill={SNOW}
-              />
-              <ellipse cx={0} cy={t.by} rx={t.w * 0.95} ry={2.6} fill={SNOW} />
-            </>
-          )}
-          {lights &&
-            [-0.6, -0.15, 0.3, 0.7].map((f, j) => (
-              <circle key={j} cx={t.w * f} cy={t.by - 3 - (j % 2) * 3} r={2.1} fill={bulbs[(i + j) % 4]} />
-            ))}
-        </g>
-      ))}
-      {star && <polygon points="0,-74 2.6,-67 10,-67 4,-62.5 6.3,-55.5 0,-59.8 -6.3,-55.5 -4,-62.5 -10,-67 -2.6,-67" fill="#f2c14e" />}
+    <g transform={`translate(${x} ${y})`} opacity={opacity}>
+      <rect x={-2} y={-2} width={4} height={8} fill="#3b2a22" />
+      <path d={d} fill={color} />
+      {snow &&
+        [...L, ...R].map((t, i) => {
+          // Dalın üst kenarında yumuşak bir kar kütlesi: uca doğru incelir, ortada kalınlaşır
+          const [tx, ty] = t.tip;
+          const [nx, ny] = t.notch;
+          const lerp = (k: number, dy: number) => `${(tx + (nx - tx) * k).toFixed(1)} ${(ty + (ny - ty) * k + dy).toFixed(1)}`;
+          const th = Math.min(5.5, step * 0.5);
+          return (
+            <path
+              key={i}
+              d={`M${(tx * 1.03).toFixed(1)} ${(ty + 1).toFixed(1)} L${lerp(0.9, 0.6)} L${f(t.notch)} L${lerp(0.85, -th * 0.55)} Q${lerp(0.45, -th * 1.15)} ${lerp(0.12, -th * 0.35)} Z`}
+              fill={snowColor}
+            />
+          );
+        })}
     </g>
   );
 }
 
-function Snowman({ x, y }: { x: number; y: number }) {
+/** Uzakta karlı dağ sırası */
+function Mountains({ base = 92, color = "#c5d3e1", cap = "#f4f8fb" }: { base?: number; color?: string; cap?: string }) {
+  const peaks = [
+    [0, base - 30], [46, base - 52], [92, base - 34], [150, base - 64], [206, base - 40], [258, base - 58], [318, base - 36], [366, base - 54], [400, base - 40],
+  ];
+  const d = `M0 ${base} ` + peaks.map(([px, py]) => `L${px} ${py}`).join(" ") + ` L400 ${base} Z`;
+  return (
+    <>
+      <path d={d} fill={color} />
+      <rect x={0} y={base - 1} width={400} height={16} fill={color} />
+      {peaks.slice(1, -1).map(([px, py], i) => {
+        if (py > base - 45) return null;
+        const hgt = (base - py) * 0.32;
+        return (
+          <path
+            key={i}
+            d={`M${px} ${py} L${px - hgt * 0.9} ${py + hgt} L${px - hgt * 0.4} ${py + hgt * 0.7} L${px} ${py + hgt * 1.05} L${px + hgt * 0.45} ${py + hgt * 0.72} L${px + hgt * 0.9} ${py + hgt} Z`}
+            fill={cap}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/** Uzak, sisli orman şeridi */
+function FarForest({ y, color, count = 22, seed = 3 }: { y: number; color: string; count?: number; seed?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <Pine key={i} x={(i + 0.5) * (400 / count) + (jit(i, seed) - 0.5) * 8} y={y + jit(i, seed + 1) * 4} h={16 + jit(i, seed + 2) * 14} color={color} seed={i + seed} />
+      ))}
+    </>
+  );
+}
+
+function Lantern({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <circle cy={-12} r={12} fill={SNOW} stroke={SNOW_EDGE} />
-      <circle cy={-30} r={9} fill={SNOW} stroke={SNOW_EDGE} />
-      <circle cy={-44} r={7} fill={SNOW} stroke={SNOW_EDGE} />
-      <rect x={-8} y={-38} width={16} height={4} rx={2} fill="#d0303a" />
-      <rect x={3} y={-38} width={4} height={10} rx={2} fill="#d0303a" />
-      <circle cx={-2.5} cy={-46} r={1} fill="#333" />
-      <circle cx={2.5} cy={-46} r={1} fill="#333" />
-      <polygon points="0,-44 8,-43 0,-42" fill="#f08a24" />
-      <rect x={-6} y={-56} width={12} height={4} fill="#2b2b2b" />
-      <rect x={-4} y={-63} width={8} height={8} fill="#2b2b2b" />
+      <circle cx={0} cy={-11} r={16} fill="#ffd98a" opacity={0.22} />
+      <rect x={-5.5} y={-19} width={11} height={16} rx={1.5} fill="#ffe3a3" />
+      <path d="M-5.5 -19 h11 v16 h-11 Z M0 -19 v16 M-5.5 -11 h11" stroke="#2b2522" strokeWidth={1.3} fill="none" />
+      <path d="M-7 -19 L0 -25 L7 -19 Z" fill="#2b2522" />
+      <path d="M-3 -27 q3 -5 6 0" stroke="#2b2522" strokeWidth={1.2} fill="none" />
+      <rect x={-7} y={-3} width={14} height={3} fill="#2b2522" />
+    </g>
+  );
+}
+
+/** Yılbaşı ağacı: sıcak beyaz ışıklar ve ince altın yıldız */
+function XmasTree({ x, y, h = 100 }: { x: number; y: number; h?: number }) {
+  const w = h * 0.66;
+  const rows = 6;
+  const lights: [number, number][] = [];
+  for (let r = 1; r <= rows; r++) {
+    const ry = -h * (r / (rows + 1.3));
+    const half = (w / 2) * (1 - r / (rows + 1.3)) * 0.92;
+    const n = rows + 2 - r;
+    for (let j = 0; j < n; j++) {
+      const t = (j + 0.5) / n;
+      lights.push([-half + 2 * half * t, ry + 5 * Math.sin(Math.PI * t) + (r % 2 ? 2 : -1)]);
+    }
+  }
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <Pine x={0} y={0} h={h} w={w} color="#1b4334" snow seed={11} />
+      {lights.map(([lx, ly], i) => (
+        <g key={i}>
+          <circle cx={lx} cy={ly} r={3.6} fill="#ffe29a" opacity={0.28} />
+          <circle cx={lx} cy={ly} r={1.25} fill="#fff6d8" />
+        </g>
+      ))}
+      <g transform={`translate(0 ${-h - 4})`}>
+        <circle r={9} fill="#f6d77a" opacity={0.25} />
+        <path d="M0 -7 L1.4 -1.4 L7 0 L1.4 1.4 L0 7 L-1.4 1.4 L-7 0 L-1.4 -1.4 Z" fill="#f3cf6a" />
+      </g>
     </g>
   );
 }
@@ -63,7 +140,7 @@ function Gift({ x, y, w = 16, h = 13, color = "#d0303a", ribbon = "#f2c14e" }: {
       <rect x={-w / 2} y={-h} width={w} height={h} rx={1.5} fill={color} />
       <rect x={-1.5} y={-h} width={3} height={h} fill={ribbon} />
       <rect x={-w / 2} y={-h + 4} width={w} height={2.5} fill={ribbon} />
-      <path d={`M0 ${-h} q-6 -6 -5 0 M0 ${-h} q6 -6 5 0`} stroke={ribbon} strokeWidth={2} fill="none" />
+      <path d={`M0 ${-h} q-5 -5 -4 0 M0 ${-h} q5 -5 4 0`} stroke={ribbon} strokeWidth={1.4} fill="none" />
     </g>
   );
 }
@@ -207,30 +284,34 @@ function Scene({ theme }: { theme: ThemeKey }) {
     case "kis":
       return (
         <>
-          <path d={hill(82, 76, 70)} fill="#dfe8f2" />
-          <Pine x={36} y={112} s={0.8} snow />
-          <Pine x={300} y={104} s={0.7} snow />
-          <Pine x={372} y={110} s={0.95} snow />
-          <path d={hill(112, 104, 110)} fill={SNOW} stroke={SNOW_EDGE} />
-          <Cabin x={210} y={122} />
-          <Pine x={92} y={132} s={1.05} snow />
-          <Snowman x={140} y={134} />
-          <Pine x={330} y={140} s={0.85} snow />
+          <Mountains />
+          <FarForest y={100} color="#8ea4b4" />
+          <path d="M0 150 L0 104 Q90 92 190 102 T400 98 L400 150 Z" fill="#eef3f8" />
+          <Cabin x={236} y={122} />
+          <path d="M0 150 L0 120 Q110 108 220 122 T400 116 L400 150 Z" fill="#fbfdff" />
+          <path d="M0 122 Q110 110 220 124 T400 118" stroke="#d3dee9" strokeWidth={1.2} fill="none" />
+          <Pine x={34} y={134} h={92} snow seed={2} />
+          <Pine x={74} y={136} h={62} snow seed={5} color="#24493f" />
+          <Pine x={352} y={134} h={84} snow seed={8} />
+          <Pine x={386} y={138} h={56} snow seed={9} color="#24493f" />
         </>
       );
     case "yilbasi":
       return (
         <>
-          <path d={hill(84, 78, 72)} fill="#e6eef6" />
-          <Pine x={40} y={110} s={0.75} snow />
-          <Pine x={360} y={106} s={0.8} snow />
-          <path d={hill(112, 106, 110)} fill={SNOW} stroke={SNOW_EDGE} />
-          <Pine x={200} y={132} s={1.35} snow lights star />
-          <Gift x={160} y={134} />
-          <Gift x={240} y={135} w={18} h={12} color="#1f8a4a" ribbon="#e0443e" />
-          <Gift x={256} y={136} w={11} h={9} color="#2f7fc0" ribbon="#f2c14e" />
-          <Snowman x={80} y={136} />
-          <Pine x={330} y={140} s={0.8} snow lights />
+          <Mountains color="#d4c9d3" />
+          <FarForest y={100} color="#9a9aa8" />
+          <path d="M0 150 L0 104 Q90 92 190 102 T400 98 L400 150 Z" fill="#f1eef2" />
+          <path d="M0 150 L0 120 Q110 108 220 122 T400 116 L400 150 Z" fill="#fdfcfd" />
+          <path d="M0 122 Q110 110 220 124 T400 118" stroke="#e0d8e0" strokeWidth={1.2} fill="none" />
+          <Pine x={30} y={134} h={86} snow seed={4} />
+          <Pine x={366} y={134} h={80} snow seed={6} />
+          <XmasTree x={200} y={136} h={104} />
+          <Gift x={160} y={137} w={18} h={14} color="#6e1d28" ribbon="#d8b46a" />
+          <Gift x={176} y={138} w={11} h={9} color="#c9a57c" ribbon="#1f4a3a" />
+          <Gift x={236} y={138} w={16} h={12} color="#efe6d8" ribbon="#8e2333" />
+          <Lantern x={110} y={138} />
+          <Lantern x={290} y={139} />
         </>
       );
     case "sonbahar":
@@ -325,11 +406,12 @@ function Scene({ theme }: { theme: ThemeKey }) {
           <circle cx={334} cy={30} r={17} fill="#f6e7b8" />
           <circle cx={341} cy={26} r={14} fill="#2a2342" opacity={0.9} />
           <path d={hill(86, 80, 74)} fill="#2a2342" />
-          <Pine x={50} y={110} s={0.8} color="#1c2a2a" dark="#162222" />
+          <Pine x={50} y={110} h={60} color="#151b26" seed={3} />
           <path d={hill(112, 104, 110)} fill="#211b33" />
           <House x={180} y={134} />
           <House x={214} y={136} w={22} h={18} roof="#4a3b66" />
-          <Pine x={320} y={138} s={0.9} color="#1c2a2a" dark="#162222" />
+          <Pine x={320} y={138} h={70} color="#151b26" seed={7} />
+          <Pine x={350} y={140} h={48} color="#151b26" seed={8} />
         </>
       );
     default:
