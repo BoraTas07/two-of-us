@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "./db";
 import {
   activeTasks,
+  assigneeOn,
   completionFor,
   dayResult,
   displayStreak,
@@ -20,6 +21,7 @@ import {
 import { levelFromXp, type LevelInfo } from "./levels";
 import { openObjectionTaskIds } from "./objections";
 import { photoStates, type PhotoState } from "./photos";
+import { liveSwaps, type Swap } from "./swaps";
 import { describeRepeat, isDueOn } from "./recurrence";
 import { addDays, formatShort, todayStr, weekStart, weekday, WEEKDAYS_SHORT } from "./time";
 import type { Profile, SubCompletion, Subtask, Task } from "./types";
@@ -52,6 +54,8 @@ export type TaskItem = {
   /** Bugünkü (ya da tek seferlik) tamamlamanın id'si ve kanıt fotoğrafı durumu */
   completionId: number | null;
   photo: PhotoState;
+  /** Bugünkü takas durumu */
+  swap: null | { id: number; status: "pending" | "accepted"; fromMe: boolean; bonus: number };
 };
 
 export type SubItem = {
@@ -66,6 +70,7 @@ type SubState = {
   subDone: Map<string, SubCompletion>;
   objected: Set<number>;
   photos: Map<number, PhotoState>;
+  swaps: Swap[];
 };
 
 type Viewer = { meId: number; partnerName: string; sub: SubState };
@@ -91,7 +96,7 @@ export type PersonSummary = {
 function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskItem {
   const c = completionFor(t, today, idx);
   let blockedReason: string | null = null;
-  if (!relevantTo(t, v.meId)) blockedReason = `${v.partnerName} yapacak`;
+  if (!relevantTo(t, v.meId, today)) blockedReason = `${v.partnerName} yapacak`;
   else if (t.kind !== "once" && !isDueOn(t, today)) {
     const next = nextDueText(t, today);
     blockedReason = next ? `Sıradaki: ${next}` : "Bugün değil";
@@ -105,7 +110,7 @@ function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskIt
     xp: t.xp,
     requiresApproval: t.requires_approval,
     shared: t.assignee_id === null,
-    assigneeId: t.assignee_id,
+    assigneeId: assigneeOn(t, today),
     creatorId: t.creator_id,
     remindTime: t.remind_time,
     dueDate: t.due_date,
@@ -119,6 +124,10 @@ function toItem(t: Task, today: string, idx: CompletionIndex, v: Viewer): TaskIt
     requiresPhoto: t.requires_photo,
     completionId: c?.id ?? null,
     photo: c ? (v.sub.photos.get(c.id) ?? null) : null,
+    swap: (() => {
+      const sw = v.sub.swaps.find((x) => x.task_id === t.id);
+      return sw ? { id: sw.id, status: sw.status, fromMe: sw.from_id === v.meId, bonus: sw.bonus } : null;
+    })(),
     subtasks: v.sub.subs
       .filter((x) => x.task_id === t.id)
       .map((x) => {
@@ -149,6 +158,7 @@ export async function loadState(today = todayStr()) {
     subDone,
     objected: await openObjectionTaskIds(),
     photos: await photoStates(pendingIds),
+    swaps: await liveSwaps(today),
   };
   return { tasks, idx, today, sub };
 }
@@ -182,10 +192,10 @@ export async function todayView(me: Profile, partner: Profile) {
     Number(b.overdue) - Number(a.overdue) ||
     (a.remindTime ?? "99").localeCompare(b.remindTime ?? "99");
 
-  const mine = visible.filter((t) => t.assignee_id === me.id).map((t) => toItem(t, today, idx, v)).sort(sortItems);
+  const mine = visible.filter((t) => assigneeOn(t, today) === me.id).map((t) => toItem(t, today, idx, v)).sort(sortItems);
   const shared = visible.filter((t) => t.assignee_id === null).map((t) => toItem(t, today, idx, v)).sort(sortItems);
   const theirs = visible
-    .filter((t) => t.assignee_id === partner.id)
+    .filter((t) => assigneeOn(t, today) === partner.id)
     .map((t) => toItem(t, today, idx, v))
     .sort(sortItems);
 
@@ -204,8 +214,11 @@ export async function todayView(me: Profile, partner: Profile) {
   const week = weekStart(today);
   const goal = { target: await weeklyGoalTarget(), ...(await weekProgress(week)) };
 
+  const swapOffers = state.sub.swaps.filter((x) => x.status === "pending" && x.to_id === me.id);
+
   return {
     today,
+    swapOffers,
     me: await personSummary(me, state, totals),
     partner: await personSummary(partner, state, totals),
     mine,

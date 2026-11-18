@@ -20,6 +20,8 @@ export type Task = {
   kind: TaskKind;
   creator_id: number;
   assignee_id: number | null; // null = ortak görev
+  /** Kabul edilmiş takaslar: gün → o gün görevi yapacak kişi */
+  swapped?: Record<string, number>;
   xp: number;
   requires_approval: boolean;
   requires_photo: boolean;

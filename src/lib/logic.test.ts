@@ -158,3 +158,14 @@ describe("şarkı linkleri", () => {
     expect(parseSongLink("şarkı adı")).toBeNull();
   });
 });
+
+import { ablative, dative, genitive } from "./tr";
+describe("Türkçe ekler", () => {
+  it("ünlü uyumu", () => {
+    expect([dative("Ece"), dative("Deniz"), dative("Burak"), dative("Ali")]).toEqual(["Ece'ye", "Deniz'e", "Burak'a", "Ali'ye"]);
+    expect([ablative("Ece"), ablative("Deniz"), ablative("Burak")]).toEqual(["Ece'den", "Deniz'den", "Burak'tan"]);
+    expect([genitive("Ece"), genitive("Deniz"), genitive("Burak"), genitive("Onur"), genitive("Gül")]).toEqual([
+      "Ece'nin", "Deniz'in", "Burak'ın", "Onur'un", "Gül'ün",
+    ]);
+  });
+});

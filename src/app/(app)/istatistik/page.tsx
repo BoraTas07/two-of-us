@@ -182,7 +182,8 @@ export default async function StatsPage() {
           <div className="card divide-y-2 divide-line">
             {feed.map((f, i) => {
               const p = f.profile_id === me.id ? me : partner;
-              const icon = f.kind === "streak" ? "🔥" : f.kind === "goal" ? "🏆" : "✅";
+              const icon =
+                ({ streak: "🔥", goal: "🏆", swap: "🔄", question: "❓", dream: "✨" } as Record<string, string>)[f.kind] ?? "✅";
               return (
                 <div key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold">
                   <Avatar emoji={p.emoji} color={p.color} size={28} />

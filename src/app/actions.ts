@@ -23,6 +23,10 @@ import { requestLocation, saveLocation, setSharing } from "@/lib/location";
 import { reactSong, removeTodaySong, shareSong } from "@/lib/songs";
 import { addDeed, removeDeed, setMood, thankDeed } from "@/lib/moods";
 import { addComment, deleteComment, deleteMoment, reactMoment } from "@/lib/moments";
+import { answerSwap, cancelSwap, offerSwap } from "@/lib/swaps";
+import { addCustomQuestion, answerQuestion, removeCustomQuestion } from "@/lib/questions";
+import { addDream, removeDream } from "@/lib/dreams";
+import { addItems, clearChecked, removeItem, toggleItem } from "@/lib/shopping";
 import { addDays, todayStr } from "@/lib/time";
 import { COLORS } from "@/lib/types";
 import { MAX_CARROTS, MIN_CARROTS } from "@/lib/carrots";
@@ -535,5 +539,91 @@ export async function commentMomentAction(id: number, text: string) {
 export async function deleteCommentAction(id: number) {
   const { me } = await requireUser();
   await deleteComment(me, id);
+  refresh();
+}
+
+// ---------------------------------------------------------------- görev takası
+
+export async function offerSwapAction(taskId: number, bonus: number) {
+  const { me, partner } = await requireUser();
+  const err = await offerSwap(me, partner, taskId, bonus);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function cancelSwapAction(id: number) {
+  const { me } = await requireUser();
+  await cancelSwap(me, id);
+  refresh();
+}
+
+export async function answerSwapAction(id: number, accept: boolean) {
+  const { me } = await requireUser();
+  const err = await answerSwap(me, id, accept);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+// ---------------------------------------------------------------- günün sorusu
+
+export async function answerQuestionAction(text: string) {
+  const { me, partner } = await requireUser();
+  const err = await answerQuestion(me, partner, text);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function addQuestionAction(text: string) {
+  const { me } = await requireUser();
+  const err = await addCustomQuestion(me, text);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function removeQuestionAction(id: number) {
+  const { me } = await requireUser();
+  await removeCustomQuestion(me, id);
+  refresh();
+}
+
+// ---------------------------------------------------------------- birlikte yapacaklarımız
+
+export async function addDreamAction(title: string, emoji: string, notes: string, xp: number) {
+  const { me, partner } = await requireUser();
+  const err = await addDream(me, partner, title, emoji, notes, xp);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function removeDreamAction(id: number) {
+  const { me } = await requireUser();
+  await removeDream(me, id);
+  refresh();
+}
+
+// ---------------------------------------------------------------- alışveriş listesi
+
+export async function addShopAction(text: string) {
+  const { me, partner } = await requireUser();
+  const err = await addItems(me, partner, text);
+  refresh();
+  return err ? { error: err } : { ok: true };
+}
+
+export async function toggleShopAction(id: number) {
+  const { me } = await requireUser();
+  await toggleItem(me, id);
+  refresh();
+}
+
+export async function removeShopAction(id: number) {
+  await requireUser();
+  await removeItem(id);
+  refresh();
+}
+
+export async function clearShopAction() {
+  await requireUser();
+  await clearChecked();
   refresh();
 }

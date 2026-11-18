@@ -35,11 +35,18 @@ export type Purchase = {
 
 export async function balanceOf(profileId: number, db: Db = sql): Promise<number> {
   await ensureSchema();
-  const [r] = await db<{ earned: number; spent: number }[]>`
+  const [r] = await db<{ earned: number; spent: number; swapped: number }[]>`
     select
       (select coalesce(sum(amount), 0)::int from xp_events where profile_id = ${profileId}) as earned,
-      (select coalesce(sum(cost), 0)::int from purchases where buyer_id = ${profileId}) as spent`;
-  return r.earned - r.spent;
+      (select coalesce(sum(cost), 0)::int from purchases where buyer_id = ${profileId}) as spent,
+      -- Kabul edilmiş takas bonusları: bugün/ileride ise ayrılmış, ödendiyse harcanmış sayılır
+      (select coalesce(sum(bonus), 0)::int from swaps where from_id = ${profileId} and status = 'accepted'
+        and (completion_id is not null
+             or occ_date >= to_char(now() at time zone 'Europe/Istanbul', 'YYYY-MM-DD')
+             or exists (select 1 from completions c where c.task_id = swaps.task_id and c.profile_id = swaps.to_id
+                        and c.status = 'pending'
+                        and to_char(c.completed_at at time zone 'Europe/Istanbul', 'YYYY-MM-DD') = swaps.occ_date))) as swapped`;
+  return r.earned - r.spent - r.swapped;
 }
 
 export async function getReward(id: number): Promise<Reward | undefined> {

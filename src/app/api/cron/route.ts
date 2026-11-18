@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     // Bugün yapılacaklar + tarihi geçmiş ya da tarihsiz, henüz bitmemiş tek seferlik görevler
     const mineToday = tasks.filter(
       (t) =>
-        relevantTo(t, p.id) &&
+        relevantTo(t, p.id, today) &&
         (isDueOn(t, today) ||
           (t.kind === "once" && !completionFor(t, today, idx) && (!t.due_date || t.due_date < today))),
     );

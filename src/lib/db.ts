@@ -325,6 +325,71 @@ create table if not exists streak_log (
   outcome text not null,
   primary key (profile_id, day)
 );
+
+-- Görev takası: bir günlük tekrarı (tek seferlikte görevin kendisini) partnere devretme teklifi
+create table if not exists swaps (
+  id serial primary key,
+  task_id int not null references tasks(id) on delete cascade,
+  occ_date text not null,
+  from_id int not null references profiles(id),
+  to_id int not null references profiles(id),
+  bonus int not null default 0,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined', 'cancelled')),
+  -- Bonusun ödendiği tamamlama (geri alınırsa boşalır ve bonus iade sayılır)
+  completion_id int references completions(id) on delete set null,
+  created_at timestamptz not null default now(),
+  decided_at timestamptz
+);
+create unique index if not exists swaps_live on swaps (task_id, occ_date) where status in ('pending', 'accepted');
+
+-- Günün sorusu
+create table if not exists daily_questions (
+  day text primary key,
+  text text not null,
+  author_id int references profiles(id) on delete set null
+);
+create table if not exists custom_questions (
+  id serial primary key,
+  author_id int not null references profiles(id) on delete cascade,
+  text text not null,
+  used_on text,
+  created_at timestamptz not null default now()
+);
+create table if not exists answers (
+  day text not null,
+  profile_id int not null references profiles(id) on delete cascade,
+  text text not null,
+  created_at timestamptz not null default now(),
+  primary key (day, profile_id)
+);
+
+-- Birlikte yapacaklarımız (hayal listesi)
+create table if not exists dreams (
+  id serial primary key,
+  title text not null,
+  emoji text not null default '🌟',
+  notes text not null default '',
+  creator_id int not null references profiles(id),
+  xp int not null default 20,
+  done_at timestamptz,
+  done_by int references profiles(id),
+  photo bytea,
+  photo_mime text,
+  archived boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+-- Ortak alışveriş listesi
+create table if not exists shopping_items (
+  id serial primary key,
+  text text not null,
+  added_by int not null references profiles(id),
+  checked_at timestamptz,
+  checked_by int references profiles(id),
+  cleared_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists shopping_open on shopping_items (cleared_at, id);
 `;
 
 /**
@@ -332,7 +397,7 @@ create table if not exists streak_log (
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "15";
+const SCHEMA_VERSION = "16";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {

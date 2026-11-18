@@ -26,7 +26,25 @@ export function notifyLater(profileId: number, msg: PushMessage) {
 
 export async function activeTasks(db: Sql = sql): Promise<Task[]> {
   await ensureSchema();
-  return db<Task[]>`select * from tasks where not archived order by created_at, id`;
+  return withSwaps(await db<Task[]>`select * from tasks where not archived order by created_at, id`, db);
+}
+
+/** Kabul edilmiş takasları görevlere ekler (o gün görevi kimin yapacağı) */
+async function withSwaps(tasks: Task[], db: Sql = sql): Promise<Task[]> {
+  if (!tasks.length) return tasks;
+  const rows = await db<{ task_id: number; occ_date: string; to_id: number }[]>`
+    select task_id, occ_date, to_id from swaps
+    where status = 'accepted' and task_id = any(${tasks.map((t) => t.id)}::int[])`;
+  for (const r of rows) {
+    const t = tasks.find((x) => x.id === r.task_id);
+    if (t) (t.swapped ??= {})[r.occ_date] = r.to_id;
+  }
+  return tasks;
+}
+
+/** O gün görevi yapacak kişi (takas varsa devralan) */
+export function assigneeOn(t: Task, day: string): number | null {
+  return t.swapped?.[day] ?? t.assignee_id;
 }
 
 /** Belirli bir tarihten sonraki tamamlamalar + tek seferlik görevlerin tüm tamamlamaları */
@@ -57,13 +75,14 @@ export function completionFor(t: Task, day: string, idx: CompletionIndex): Compl
   return t.kind === "once" ? idx.once.get(t.id) : idx.byKey.get(`${t.id}|${day}`);
 }
 
-export function relevantTo(t: Task, profileId: number): boolean {
-  return t.assignee_id === profileId || t.assignee_id === null;
+export function relevantTo(t: Task, profileId: number, day?: string): boolean {
+  const a = day ? assigneeOn(t, day) : t.assignee_id;
+  return a === profileId || a === null;
 }
 
 /** Bir günün seri açısından sonucu: kaç görev vardı, kaçı yapıldı */
 export function dayResult(profileId: number, day: string, tasks: Task[], idx: CompletionIndex) {
-  const due = tasks.filter((t) => relevantTo(t, profileId) && isDueOn(t, day));
+  const due = tasks.filter((t) => relevantTo(t, profileId, day) && isDueOn(t, day));
   const done = due.filter((t) => completionFor(t, day, idx)).length;
   const sharedIds = new Set(tasks.filter((t) => t.assignee_id === null).map((t) => t.id));
   const anyCompletion = idx.all.some(
@@ -363,7 +382,23 @@ async function awardSubXp(profileIds: number[], subCompletionId: number, xp: num
 
 export async function getTask(id: number): Promise<Task | undefined> {
   const [t] = await sql<Task[]>`select * from tasks where id = ${id}`;
-  return t;
+  return t ? (await withSwaps([t]))[0] : undefined;
+}
+
+/**
+ * Takasla devralınan görev tamamlanıp onaylandığında, teklif edenin bakiyesinden
+ * söz verilen bonus havucu devralana geçer. Tamamlama geri alınırsa bonus da geri döner.
+ */
+async function paySwapBonus(taskId: number, completionId: number, completerId: number, swapDay: string, today: string) {
+  const [sw] = await sql<{ id: number; bonus: number; from_id: number }[]>`
+    update swaps set completion_id = ${completionId}
+    where id = (select id from swaps where task_id = ${taskId} and to_id = ${completerId} and status = 'accepted'
+                and occ_date = ${swapDay} and completion_id is null limit 1)
+    returning id, bonus, from_id`;
+  if (!sw || sw.bonus <= 0) return 0;
+  await sql`insert into xp_events (profile_id, amount, kind, completion_id, note, day)
+            values (${completerId}, ${sw.bonus}, 'swap', ${completionId}, 'Takas bonusu', ${today})`;
+  return sw.bonus;
 }
 
 // ---------------------------------------------------------------- alt görevler
@@ -390,7 +425,8 @@ function occFor(task: Task, today: string): string {
 
 /** Görev şu an bu kişi tarafından tamamlanabilir mi? Değilse hata fırlatır. */
 async function checkCompletable(me: Profile, task: Task | undefined, today: string): Promise<Task> {
-  if (!task || task.archived || !relevantTo(task, me.id)) throw new Error("Görev bulunamadı");
+  if (!task || task.archived) throw new Error("Görev bulunamadı");
+  if (!relevantTo(task, me.id, today)) throw new Error("Bu görev bugün senin değil");
   if (task.kind !== "once" && !isDueOn(task, today)) throw new Error("Bu görev bugün yapılacaklar arasında değil");
   return task;
 }
@@ -475,7 +511,8 @@ async function finishTask(
   }
 
   await awardXp(shared ? [me.id, partner.id] : [me.id], c.id, task.xp, task.title, today);
-  const total = earnedBefore + task.xp;
+  const bonus = shared ? 0 : await paySwapBonus(task.id, c.id, me.id, today, today);
+  const total = earnedBefore + task.xp + bonus;
   if (shared) {
     notifyLater(partner.id, {
       title: `💞 ${me.name} ortak görevi bitirdi`,
@@ -620,13 +657,14 @@ export async function decideCompletion(me: Profile, completionId: number, approv
   await sql`update completions set status = 'approved', decided_by = ${me.id}, decided_at = now()
             where id = ${c.id}`;
   await awardXp([c.profile_id], c.id, c.xp, c.title, today);
+  const bonus = await paySwapBonus(c.task_id, c.id, c.profile_id, todayStr(new Date(c.completed_at)), today);
   // Bu rutinin onay bekleyen alt görevleri de onaylanır
   const subs = await sql<(SubCompletion & { sub_title: string })[]>`
     update subtask_completions sc set status = 'approved'
     from subtasks s
     where s.id = sc.subtask_id and sc.task_id = ${c.task_id} and sc.occ_date = ${c.occ_date} and sc.status = 'pending'
     returning sc.*, s.title as sub_title`;
-  let total = c.xp;
+  let total = c.xp + bonus;
   for (const sc of subs) {
     await awardSubXp([sc.profile_id], sc.id, sc.xp, `${c.title} › ${sc.sub_title}`, today);
     total += sc.xp;

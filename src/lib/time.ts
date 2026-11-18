@@ -79,7 +79,7 @@ export const WEEKDAYS_LONG = [
   "Cumartesi",
   "Pazar",
 ];
-const MONTHS = [
+export const MONTHS = [
   "Ocak",
   "Şubat",
   "Mart",

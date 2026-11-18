@@ -11,6 +11,7 @@ import { colorOf } from "@/lib/types";
 import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
 import TogetherStrip from "@/components/together-strip";
+import { SwapOffer } from "@/components/swap";
 
 function allDoneColor(done: number, due: number) {
   return due > 0 && done >= due ? "var(--fire)" : "var(--sage)";
@@ -111,6 +112,22 @@ export default async function TodayPage() {
           </Notice>
         )}
       </div>
+
+      {v.swapOffers.length > 0 && (
+        <div id="takas" className="mt-3 scroll-mt-24 space-y-2">
+          {v.swapOffers.map((o) => (
+            <SwapOffer
+              key={o.id}
+              id={o.id}
+              title={o.title}
+              emoji={o.emoji}
+              xp={o.xp}
+              bonus={o.bonus}
+              partnerName={partner.name}
+            />
+          ))}
+        </div>
+      )}
 
       {v.pending.length > 0 && (
         <div id="onay" className="scroll-mt-24">

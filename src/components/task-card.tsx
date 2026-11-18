@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useOptimistic, useState, useTransition } from "react";
 import { completeAction, completeSubtaskAction, undoAction, undoSubtaskAction } from "@/app/actions";
 import { formatRelative } from "@/lib/time";
+import { ablative, dative } from "@/lib/tr";
 import { SHARED_COLOR, colorOf } from "@/lib/types";
 import type { SubItem, TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
@@ -94,7 +95,20 @@ export default function TaskCard({
         🤝 Onaylı{item.requiresPhoto ? " · 📷" : ""}
       </span>,
     );
-  if (!item.shared && item.creatorId !== item.assigneeId) {
+  if (item.swap?.status === "accepted")
+    meta.push(
+      <span key="s" className="chip bg-ice-soft text-ice-ink">
+        🔄 {item.swap.fromMe ? `${dative(partner.name)} devrettin` : `${ablative(partner.name)} devraldın`}
+        {item.swap.bonus ? ` · +${item.swap.bonus} bonus` : ""}
+      </span>,
+    );
+  else if (item.swap?.status === "pending")
+    meta.push(
+      <span key="s" className="chip bg-ice-soft text-ice-ink">
+        🔄 Takas teklifi
+      </span>,
+    );
+  if (!item.shared && item.creatorId !== item.assigneeId && item.swap?.status !== "accepted") {
     const giver = item.creatorId === me.id ? me : partner;
     meta.push(
       <span key="g" className="chip bg-line text-muted">

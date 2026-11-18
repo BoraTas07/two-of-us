@@ -9,6 +9,8 @@ import TaskCard from "@/components/task-card";
 import { taskItemView } from "@/lib/views";
 import { objectionsFor } from "@/lib/objections";
 import ObjectionPanel from "@/components/objection-panel";
+import { SwapPanel } from "@/components/swap";
+import { balanceOf } from "@/lib/shop";
 
 export const metadata = { title: "Görev — Two Of Us" };
 
@@ -47,6 +49,18 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
         <div className="mb-5">
           <TaskCard item={item} me={people.me} partner={people.partner} today={today} />
           {t.notes && <p className="card mt-2 p-4 text-sm whitespace-pre-wrap">{t.notes}</p>}
+          {(item.swap ||
+            (!item.shared && item.assigneeId === me.id && !item.done && item.canComplete)) && (
+            <div className="mt-2">
+              <SwapPanel
+                taskId={t.id}
+                xp={t.xp}
+                partnerName={partner.name}
+                balance={await balanceOf(me.id)}
+                swap={item.swap}
+              />
+            </div>
+          )}
           <div className="mt-2">
             <ObjectionPanel
               taskId={t.id}

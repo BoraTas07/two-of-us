@@ -5,6 +5,8 @@ import { unseenMoments } from "@/lib/moments";
 import { MOOD_BY_KEY } from "@/lib/mood-options";
 import { deedsForDay, moodsForDay } from "@/lib/moods";
 import { songsForDay } from "@/lib/songs";
+import { todayQuestion } from "@/lib/questions";
+import { openCount } from "@/lib/shopping";
 import type { Profile } from "@/lib/types";
 
 function km(m: number) {
@@ -23,7 +25,7 @@ type Item = { href: string; icon: string; title: string; sub: string; hot?: bool
  * sekmesindeki ilgili bölüm açılır.
  */
 export default async function TogetherStrip({ me, partner, today }: { me: Profile; partner: Profile; today: string }) {
-  const [moods, deeds, songs, unseen, emojis, myLoc, partnerLoc] = await Promise.all([
+  const [moods, deeds, songs, unseen, emojis, myLoc, partnerLoc, question, shop] = await Promise.all([
     moodsForDay(today),
     deedsForDay(today),
     songsForDay(today),
@@ -31,7 +33,11 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
     recentEmojis(10),
     locationOf(me.id),
     locationOf(partner.id),
+    todayQuestion(),
+    openCount(),
   ]);
+  const iAnswered = question.answers.some((a) => a.profile_id === me.id);
+  const theyAnswered = question.answers.some((a) => a.profile_id === partner.id);
   const theirMood = moods.find((m) => m.profile_id === partner.id);
   const myMood = moods.find((m) => m.profile_id === me.id);
   const forMe = deeds.filter((d) => d.from_id === partner.id).length;
@@ -51,6 +57,13 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
           ? "Henüz paylaşmadı"
           : "Sen de paylaş",
       hot: !myMood,
+    },
+    {
+      href: "/biz#soru",
+      icon: "❓",
+      title: "Günün sorusu",
+      sub: iAnswered ? (theyAnswered ? "Cevaplar açık" : "Cevap bekleniyor") : theyAnswered ? `${partner.name} cevapladı` : "+5 🥕",
+      hot: !iAnswered,
     },
     {
       href: "/sensiz",
@@ -79,6 +92,12 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
       icon: lastEmoji?.emoji ?? "😘",
       title: "Emoji",
       sub: lastEmoji ? `${partner.name} gönderdi` : "Gönder",
+    },
+    {
+      href: "/liste",
+      icon: "🛒",
+      title: "Alışveriş",
+      sub: shop ? `${shop} ürün` : "Liste boş",
     },
     {
       href: "/konum",

@@ -12,6 +12,10 @@ import MoodCard from "@/components/mood-card";
 import DeedCard from "@/components/deed-card";
 import SongCard from "@/components/song-card";
 import EmojiBar from "@/components/emoji-bar";
+import { QuestionCard } from "@/components/question-card";
+import { todayQuestion } from "@/lib/questions";
+import { openCount } from "@/lib/shopping";
+import { listDreams } from "@/lib/dreams";
 import { deedsForDay, moodsForDay } from "@/lib/moods";
 import { songsForDay } from "@/lib/songs";
 import { unseenMoments } from "@/lib/moments";
@@ -42,7 +46,7 @@ export default async function UsPage() {
   const [{ n: goalsDone }] = await sql<{ n: number }[]>`select count(*)::int as n from goal_weeks`;
   const badgeRows = await sql<{ profile_id: number; badge_id: string; earned_at: Date }[]>`
     select profile_id, badge_id, earned_at from profile_badges`;
-  const [moods, deeds, songs, unseenM, recent, mySharing, myLoc, partnerLoc] = await Promise.all([
+  const [moods, deeds, songs, unseenM, recent, mySharing, myLoc, partnerLoc, question, shopCount, dreams] = await Promise.all([
     moodsForDay(today),
     deedsForDay(today),
     songsForDay(today),
@@ -51,22 +55,37 @@ export default async function UsPage() {
     sharingOf(me.id),
     locationOf(me.id),
     locationOf(partner.id),
+    todayQuestion(),
+    openCount(),
+    listDreams(),
   ]);
+  const openDreams = dreams.filter((d) => !d.done_at).length;
   const owned = (pid: number) => new Map(badgeRows.filter((b) => b.profile_id === pid).map((b) => [b.badge_id, b.earned_at]));
 
   return (
     <>
       <div className="mt-3 flex items-center justify-between px-1">
         <h1 className="text-2xl font-black">Biz</h1>
-        <div className="flex gap-2">
-          <Link href="/sensiz" className="btn bg-surface py-2 text-sm text-ink">
-            💌 Sensiz
-          </Link>
-          <Link href="/istatistik" className="btn bg-surface py-2 text-sm text-ink">
-            📊 İstatistik
-          </Link>
-        </div>
       </div>
+
+      <nav aria-label="Birlikte" className="mt-3 grid grid-cols-3 gap-2">
+        {[
+          { href: "/liste", icon: "🛒", label: "Alışveriş", sub: shopCount ? `${shopCount} ürün` : "Liste boş" },
+          { href: "/hayaller", icon: "🌟", label: "Hayaller", sub: `${openDreams} sırada` },
+          { href: "/takvim", icon: "📅", label: "Anılar", sub: "Takvim" },
+          { href: "/sorular", icon: "❓", label: "Sorular", sub: "Arşiv & ekle" },
+          { href: "/sensiz", icon: "💌", label: "Sensiz", sub: unseenM.count ? `${unseenM.count} yeni` : "Paylaş" },
+          { href: "/istatistik", icon: "📊", label: "İstatistik", sub: "30 gün" },
+        ].map((t) => (
+          <Link key={t.href} href={t.href} className="card flex flex-col items-center px-2 py-3 text-center">
+            <span className="text-2xl" aria-hidden>
+              {t.icon}
+            </span>
+            <span className="mt-1 text-sm font-black">{t.label}</span>
+            <span className="text-[11px] font-semibold text-muted">{t.sub}</span>
+          </Link>
+        ))}
+      </nav>
 
       <section id="his" className="mt-3 scroll-mt-24">
         <SectionTitle>💭 Nasıl hissediyorsunuz?</SectionTitle>
@@ -74,6 +93,17 @@ export default async function UsPage() {
           mine={moods.find((x) => x.profile_id === me.id) ?? null}
           theirs={moods.find((x) => x.profile_id === partner.id) ?? null}
           partner={{ name: partner.name, emoji: partner.emoji }}
+        />
+      </section>
+
+      <section id="soru" className="scroll-mt-24">
+        <SectionTitle right={<Link href="/sorular" className="text-sm font-extrabold text-brand">Arşiv</Link>}>
+          ❓ Günün sorusu
+        </SectionTitle>
+        <QuestionCard
+          q={question}
+          me={{ id: me.id, name: me.name, emoji: me.emoji }}
+          partner={{ id: partner.id, name: partner.name, emoji: partner.emoji }}
         />
       </section>
 
@@ -92,24 +122,6 @@ export default async function UsPage() {
           partner={{ name: partner.name, emoji: partner.emoji }}
         />
       </section>
-
-      <Link href="/sensiz" className="card mt-6 flex items-center gap-3 p-4">
-        <span className="text-3xl" aria-hidden>
-          💌
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="font-serif text-lg leading-tight">Sensiz İçime Sinmiyor</div>
-          <div className="truncate text-sm font-semibold text-muted">
-            {unseenM.count > 0
-              ? `${partner.name} ${unseenM.count} yeni şey paylaştı${
-                  unseenM.latest?.text ? `: “${unseenM.latest.text}”` : unseenM.latest?.has_photo ? " 📷" : ""
-                }`
-              : "Bugün ne gördün? Paylaş"}
-          </div>
-        </div>
-        {unseenM.count > 0 && <span className="chip bg-brand px-2.5 py-1 text-white">{unseenM.count}</span>}
-        <span className="font-black text-brand">›</span>
-      </Link>
 
       <section id="emoji" className="scroll-mt-24">
         <SectionTitle>😘 Emoji · 📍 Konum</SectionTitle>
