@@ -30,9 +30,9 @@ export async function generateViewport(): Promise<Viewport> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const t = await currentTheme();
   return (
-    <html lang="tr" data-theme={t.def.key}>
+    <html lang="tr" data-theme={t.def.key} data-scene={t.decor && t.def.decor ? "" : undefined}>
       <body className="antialiased">
-        {t.decor && <ThemeDecor decor={t.def.decor} />}
+        {t.decor && <ThemeDecor decor={t.def.decor} theme={t.def.key} />}
         {children}
       </body>
     </html>

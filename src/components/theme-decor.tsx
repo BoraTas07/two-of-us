@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import type { Decor } from "@/lib/themes";
+import type { Decor, ThemeKey } from "@/lib/themes";
+import ThemeScene from "./theme-scene";
 
 // Tema süslemeleri: kar, kalpler, çiçek yaprakları, yapraklar, konfeti, dalgalar…
 // Kartların arkasında, zeminin üstünde süzülürler; dokunmayı engellemezler.
@@ -41,7 +42,7 @@ const pick = <T,>(arr: T[], x: number) => arr[Math.floor(x * arr.length) % arr.l
 const snow = (n: number) =>
   particles(n, 1, (_, r) => ({ cls: "decor-flake", size: 3 + r(2) * 5, style: { opacity: 0.5 + r(7) * 0.4 } }), "fall");
 
-export default function ThemeDecor({ decor }: { decor: Decor }) {
+export default function ThemeDecor({ decor, theme }: { decor: Decor; theme: ThemeKey }) {
   if (!decor) return null;
   let content: React.ReactNode = null;
   switch (decor) {
@@ -60,7 +61,12 @@ export default function ThemeDecor({ decor }: { decor: Decor }) {
       content = particles(16, 3, (_, r) => ({ content: pick(["💗", "💕", "❤️", "💖"], r(2)), cls: "", size: 12 + r(2) * 14, style: { opacity: 0.55 } }), "rise");
       break;
     case "petals":
-      content = particles(18, 4, (_, r) => ({ content: pick(["🌸", "🌸", "🌼", "🍃"], r(2)), cls: "", size: 12 + r(2) * 10, style: { opacity: 0.75 } }), "fall");
+      content = (
+        <>
+          {particles(16, 4, (_, r) => ({ content: pick(["🌸", "🌸", "🌼", "🍃"], r(2)), cls: "", size: 12 + r(2) * 10, style: { opacity: 0.75 } }), "fall")}
+          {particles(4, 12, (_, r) => ({ content: "🦋", cls: "", size: 16 + r(2) * 6 }), "rise")}
+        </>
+      );
       break;
     case "leaves":
       content = particles(16, 5, (_, r) => ({ content: pick(["🍂", "🍁", "🍂"], r(2)), cls: "", size: 14 + r(2) * 12, style: { opacity: 0.8 } }), "fall");
@@ -89,27 +95,13 @@ export default function ThemeDecor({ decor }: { decor: Decor }) {
       content = particles(40, 10, (_, r) => ({ cls: "decor-star", size: 1.5 + r(2) * 2.5 }), "twinkle");
       break;
     case "waves":
-      content = (
-        <>
-          <div className="decor-sun" />
-          <div className="decor-waves">
-            {[0.16, 0.22].map((o, i) => (
-              <svg key={i} viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden>
-                <path
-                  d="M0 60 Q 150 20 300 60 T 600 60 T 900 60 T 1200 60 V120 H0 Z"
-                  fill={i ? "var(--ice)" : "var(--brand)"}
-                  fillOpacity={o}
-                  transform={i ? "translate(0 18)" : undefined}
-                />
-              </svg>
-            ))}
-          </div>
-        </>
-      );
+      // Deniz ve kum sahnede; havada martılar yerine birkaç baloncuk
+      content = particles(8, 11, (_, r) => ({ cls: "decor-bubble", size: 6 + r(2) * 8 }), "rise");
       break;
   }
   return (
     <div className="decor" aria-hidden>
+      <ThemeScene theme={theme} />
       {content}
     </div>
   );

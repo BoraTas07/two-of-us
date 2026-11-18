@@ -35,15 +35,15 @@ export type ThemeDef = {
 
 export const THEMES: Record<ThemeKey, ThemeDef> = {
   cozy: { key: "cozy", name: "Cozy", emoji: "🧺", desc: "Yulaf, kiremit ve adaçayı", decor: null, bg: "#f4eee5", top: "#f4eee5", brand: "#a65d3c", accent: "#6e8a5d" },
-  kis: { key: "kis", name: "Kış", emoji: "❄️", desc: "Sıcak bordo, kakao ve kar", decor: "snow", bg: "#f3ede8", top: "#e6e9ef", brand: "#9a3b36", accent: "#5b88a6" },
-  yilbasi: { key: "yilbasi", name: "Yılbaşı", emoji: "🎄", desc: "Kırmızı, çam yeşili, altın ve ışıklar", decor: "xmas", bg: "#f4efe7", top: "#f1dcd6", brand: "#b0282f", accent: "#2e6b47", special: true },
-  sevgililer: { key: "sevgililer", name: "Sevgililer Günü", emoji: "💝", desc: "Gül pembesi ve uçuşan kalpler", decor: "hearts", bg: "#fbf0f0", top: "#fbdbe2", brand: "#c0394f", accent: "#c75b74", special: true },
-  ilkbahar: { key: "ilkbahar", name: "İlkbahar", emoji: "🌸", desc: "Açık pasteller ve çiçek yaprakları", decor: "petals", bg: "#f4f5ef", top: "#e5f1e2", brand: "#a65684", accent: "#5f9a72" },
-  yaz: { key: "yaz", name: "Yaz", emoji: "🌊", desc: "Kum, güneş sarısı ve deniz mavisi", decor: "waves", bg: "#fbf6ea", top: "#d8eef6", brand: "#1c7193", accent: "#e0a21b" },
-  sonbahar: { key: "sonbahar", name: "Sonbahar", emoji: "🎃", desc: "Balkabağı, tarçın ve kahve", decor: "leaves", bg: "#f3eadf", top: "#f3d9bd", brand: "#b8541c", accent: "#a86a2c" },
-  dogumgunu: { key: "dogumgunu", name: "Doğum günü", emoji: "🎂", desc: "Konfeti ve balonlar", decor: "confetti", bg: "#f7f2f6", top: "#eadcf6", brand: "#8a4fb8", accent: "#d1407f", special: true },
-  yildonumu: { key: "yildonumu", name: "Yıl dönümü", emoji: "💞", desc: "Gül kurusu ve şampanya", decor: "sparkle", bg: "#f8efec", top: "#f4dcd8", brand: "#a8505e", accent: "#c09a5b", special: true },
-  gece: { key: "gece", name: "Gece", emoji: "🌙", desc: "Göz yormayan koyu tema", decor: "stars", bg: "#1f1b18", top: "#2a2433", brand: "#d0784f", accent: "#8fb07c" },
+  kis: { key: "kis", name: "Kış", emoji: "❄️", desc: "Karlı tepeler, sıcak kulübe ve kar", decor: "snow", bg: "#ecdcd2", top: "#b9d0e6", brand: "#c0262f", accent: "#1f6e48" },
+  yilbasi: { key: "yilbasi", name: "Yılbaşı", emoji: "🎄", desc: "Karlı çamlar, ışıklar ve hediyeler", decor: "xmas", bg: "#f2d8d0", top: "#f0a9a6", brand: "#d01f2e", accent: "#157a42", special: true },
+  sevgililer: { key: "sevgililer", name: "Sevgililer Günü", emoji: "💝", desc: "Gül pembesi ve uçuşan kalpler", decor: "hearts", bg: "#fdd8e2", top: "#ffadc2", brand: "#e0285a", accent: "#e08a2e", special: true },
+  ilkbahar: { key: "ilkbahar", name: "İlkbahar", emoji: "🌸", desc: "Açık pasteller ve çiçek yaprakları", decor: "petals", bg: "#e6f4d8", top: "#bfe6f7", brand: "#c2408a", accent: "#2fa55a" },
+  yaz: { key: "yaz", name: "Yaz", emoji: "🌊", desc: "Kum, güneş sarısı ve deniz mavisi", decor: "waves", bg: "#fdebbd", top: "#8fd8f2", brand: "#0a85b6", accent: "#0fa08a" },
+  sonbahar: { key: "sonbahar", name: "Sonbahar", emoji: "🎃", desc: "Balkabağı, tarçın ve kahve", decor: "leaves", bg: "#f8d9b4", top: "#f2a35a", brand: "#d4561a", accent: "#b56a12" },
+  dogumgunu: { key: "dogumgunu", name: "Doğum günü", emoji: "🎂", desc: "Konfeti ve balonlar", decor: "confetti", bg: "#eedcfa", top: "#d3b3f7", brand: "#8e3fd6", accent: "#1fa86f", special: true },
+  yildonumu: { key: "yildonumu", name: "Yıl dönümü", emoji: "💞", desc: "Gül kurusu ve şampanya", decor: "sparkle", bg: "#f6dcd9", top: "#eeb3b7", brand: "#c23b55", accent: "#c99a3c", special: true },
+  gece: { key: "gece", name: "Gece", emoji: "🌙", desc: "Göz yormayan koyu tema", decor: "stars", bg: "#171320", top: "#2b2147", brand: "#e07a4f", accent: "#e6b04a" },
 };
 
 export const THEME_ORDER: ThemeKey[] = ["cozy", "ilkbahar", "yaz", "sonbahar", "kis", "yilbasi", "sevgililer", "dogumgunu", "yildonumu", "gece"];
@@ -83,10 +83,10 @@ export function autoTheme(today: string, ctx: ThemeContext): ResolvedTheme {
     return { key: "yildonumu", greeting: `${years}. yılınız kutlu olsun! 💞` };
   }
   if (inRange(m, "02-10", "02-15")) return { key: "sevgililer", greeting: m === "02-14" ? "Sevgililer Günü kutlu olsun! 💝" : null };
-  if (m >= "12-20" || m <= "01-02") {
+  if (m >= "11-15" || m <= "01-02") {
     return { key: "yilbasi", greeting: m === "12-31" ? "Yeni yıla az kaldı! 🎆" : m === "01-01" ? "Mutlu yıllar! 🎆" : null };
   }
-  if (m >= "12-01" || m < "03-01") return { key: "kis", greeting: null };
+  if (m < "03-01") return { key: "kis", greeting: null };
   if (m < "06-01") return { key: "ilkbahar", greeting: null };
   if (m < "09-01") return { key: "yaz", greeting: null };
   return { key: "sonbahar", greeting: null };
