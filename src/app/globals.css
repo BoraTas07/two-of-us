@@ -1,271 +1,306 @@
 @import "tailwindcss";
 
-/* Sıcak, sakin ("cozy") tema: yulaf/krem zemin, kiremit, adaçayı ve bal tonları */
-:root {
+/* Temalar (lib/themes.ts): renkler başlık rengi üzerinden hesaplanır; zemin, kart, çizgi ve menü de temanın tonunu alır */
+:root,
+:root[data-theme="cozy"] {
   color-scheme: light;
-  --bg: #f4eee5;
-  --surface: #fffcf7;
-  --ink: #3b332d;
-  --muted: #877b6f;
-  --line: #e6dccd;
-
-  --brand: #a65d3c; /* kiremit */
-  --brand-dark: #82462c;
-  --brand-soft: #f3e4d9;
-
-  --xp: #b9893a; /* bal */
-  --xp-ink: #7f5c1e;
-  --xp-soft: #f3e8d2;
-
+  --head: #2f4a3c;
+  --accent: #a65d3c;
+  --bg: #e4e2d9;
+  --surface: #f8f6ef;
+  --ink: #2a2924;
+  --muted: #737266;
+  --line: #cac7b9;
+  --brand: #2f4a3c;
+  --brand-dark: #23382d;
+  --brand-soft: #e4e5de;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #ece4ce;
   --fire: #c4692f;
-  --sage: #6e8a5d; /* adaçayı */
-  --sage-ink: #4f6842;
-  --sage-soft: #e3eadb;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #d9e2d5;
   --ice: #5f8ea0;
   --ice-ink: #436c7c;
-  --ice-soft: #e1ebee;
+  --ice-soft: #d8e2e4;
   --rose: #ad6672;
-  --rose-soft: #f2e1e0;
+  --rose-soft: #e7dad8;
   --danger: #a3473b;
   --danger-soft: #f4dfd9;
-  --warn-soft: #f7ecd8;
-}
-
-/* Mevsim ve özel gün temaları (lib/themes.ts) */
-:root[data-theme="kis"] {
-  --bg-top: #b9d0e6;
-  --bg: #ecdcd2;
-  --surface: #fff7f2;
-  --line: #e3cbbf;
-  --ink: #33211d;
-  --muted: #7f625a;
-  --brand: #c0262f;
-  --brand-dark: #8f1820;
-  --brand-soft: #f9d3d3;
-  --xp: #c98a14;
-  --xp-ink: #7a520a;
-  --xp-soft: #f8e5c0;
-  --fire: #d9481f;
-  --sage: #1f6e48;
-  --sage-ink: #165236;
-  --sage-soft: #d3eadc;
-  --ice: #2f7fc0;
-  --ice-ink: #1e5f96;
-  --ice-soft: #d5e7f7;
-  --rose: #c43c63;
-  --rose-soft: #f9d6e0;
-  --danger: #b0282a;
-  --danger-soft: #f9d4d0;
-  --warn-soft: #f8e6c8;
-}
-:root[data-theme="yilbasi"] {
-  --bg-top: #f0a9a6;
-  --bg: #f2d8d0;
-  --surface: #fff5f0;
-  --line: #ebc6bd;
-  --ink: #2e1a18;
-  --muted: #7d5650;
-  --brand: #d01f2e;
-  --brand-dark: #9a1420;
-  --brand-soft: #fcd2d2;
-  --xp: #d9a21f;
-  --xp-ink: #7d5a08;
-  --xp-soft: #fbe8bd;
-  --fire: #e0461f;
-  --sage: #157a42;
-  --sage-ink: #0f5a30;
-  --sage-soft: #cdebd8;
-  --ice: #2f7fc0;
-  --ice-ink: #1e5f96;
-  --ice-soft: #d5e7f7;
-  --rose: #d23b62;
-  --rose-soft: #fcd5df;
-  --danger: #b0282a;
-  --danger-soft: #f9d4d0;
-  --warn-soft: #fbe7c4;
-}
-:root[data-theme="sevgililer"] {
-  --bg-top: #ffadc2;
-  --bg: #fdd8e2;
-  --surface: #fff0f4;
-  --line: #f7c2d0;
-  --ink: #3d1a26;
-  --muted: #8c5566;
-  --brand: #e0285a;
-  --brand-dark: #a8163f;
-  --brand-soft: #ffd0dd;
-  --xp: #e08a2e;
-  --xp-ink: #8a4f12;
-  --xp-soft: #fde3c8;
-  --fire: #f04a4a;
-  --sage: #3f9a6a;
-  --sage-ink: #2a7350;
-  --sage-soft: #d3efe0;
-  --ice: #6a7fe0;
-  --ice-ink: #4656b0;
-  --ice-soft: #e0e5fb;
-  --rose: #f05a84;
-  --rose-soft: #ffd6e2;
-  --danger: #c02a3a;
-  --danger-soft: #fdd3d8;
-  --warn-soft: #fde6d2;
+  --warn-soft: #cdcbbd;
+  --tile: #cdcbbd;
 }
 :root[data-theme="ilkbahar"] {
-  --bg-top: #bfe6f7;
-  --bg: #e6f4d8;
-  --surface: #fbfff4;
-  --line: #cfe6bd;
-  --ink: #26331f;
-  --muted: #63745a;
-  --brand: #c2408a;
-  --brand-dark: #8f2a64;
-  --brand-soft: #fbd6ea;
-  --xp: #dba10c;
-  --xp-ink: #7d5d05;
-  --xp-soft: #fbefc4;
-  --fire: #f0723c;
-  --sage: #2fa55a;
-  --sage-ink: #1f7a40;
-  --sage-soft: #d0f0d8;
-  --ice: #3a95e0;
-  --ice-ink: #2370b0;
-  --ice-soft: #d6eafb;
-  --rose: #ee6a98;
-  --rose-soft: #fdd9e6;
-  --danger: #c0392b;
-  --danger-soft: #fbd8d3;
-  --warn-soft: #fbf0cc;
+  color-scheme: light;
+  --head: #a5567a;
+  --accent: #5f9150;
+  --bg: #efe3de;
+  --surface: #fcf6f2;
+  --ink: #342a29;
+  --muted: #917576;
+  --line: #ddc9c3;
+  --brand: #a5567a;
+  --brand-dark: #7c405c;
+  --brand-soft: #f3e6e6;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #f2e4d1;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #e0e3d9;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dfe3e8;
+  --rose: #ad6672;
+  --rose-soft: #eedbdc;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #e0ccc7;
+  --tile: #e0ccc7;
 }
 :root[data-theme="yaz"] {
-  --bg-top: #8fd8f2;
-  --bg: #fdebbd;
-  --surface: #fff9e6;
-  --line: #f1d99a;
-  --ink: #1f2d36;
-  --muted: #5f707a;
-  --brand: #0a85b6;
-  --brand-dark: #066188;
-  --brand-soft: #c8ecfa;
-  --xp: #ec9f00;
-  --xp-ink: #7d5600;
-  --xp-soft: #ffe8ad;
-  --fire: #ff5f2e;
-  --sage: #0fa08a;
-  --sage-ink: #087565;
-  --sage-soft: #c8f0e8;
-  --ice: #149ce0;
-  --ice-ink: #0b74a8;
-  --ice-soft: #cdeefc;
-  --rose: #ff6f61;
-  --rose-soft: #ffdcd6;
-  --danger: #c0392b;
-  --danger-soft: #fbd8d3;
-  --warn-soft: #ffefc0;
+  color-scheme: light;
+  --head: #5e96aa;
+  --accent: #b9603f;
+  --bg: #e8e9e2;
+  --surface: #f9f8f3;
+  --ink: #2e2f2d;
+  --muted: #7f8582;
+  --line: #d2d3cb;
+  --brand: #5e96aa;
+  --brand-dark: #467080;
+  --brand-soft: #eaefec;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #eee8d4;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #dce7dc;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dbe7eb;
+  --rose: #ad6672;
+  --rose-soft: #eadedf;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #d4d7cf;
+  --tile: #d4d7cf;
 }
 :root[data-theme="sonbahar"] {
-  --bg-top: #f2a35a;
-  --bg: #f8d9b4;
-  --surface: #fff0de;
-  --line: #f0c99c;
-  --ink: #3d2414;
-  --muted: #8a5f3c;
-  --brand: #d4561a;
-  --brand-dark: #9c3a0c;
-  --brand-soft: #fdd5b5;
-  --xp: #b56a12;
-  --xp-ink: #6e3f06;
-  --xp-soft: #fbe3c1;
-  --fire: #e0541c;
-  --sage: #7d8a1e;
-  --sage-ink: #57610f;
-  --sage-soft: #ebedc6;
-  --ice: #3f8ea8;
-  --ice-ink: #2a6a80;
-  --ice-soft: #d6ecf2;
-  --rose: #c2412d;
-  --rose-soft: #fbd8cc;
-  --danger: #b0321f;
-  --danger-soft: #fbd6cc;
-  --warn-soft: #fde6c3;
+  color-scheme: light;
+  --head: #a2471a;
+  --accent: #6a7429;
+  --bg: #eee2d5;
+  --surface: #fcf6ee;
+  --ink: #342921;
+  --muted: #90715e;
+  --line: #ddc7b4;
+  --brand: #a2471a;
+  --brand-dark: #7a3514;
+  --brand-soft: #f3e4d9;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #f2e4cd;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #e0e2d3;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dfe2e2;
+  --rose: #ad6672;
+  --rose-soft: #eedad6;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #dfcab8;
+  --tile: #dfcab8;
+}
+:root[data-theme="kis"] {
+  color-scheme: light;
+  --head: #34495a;
+  --accent: #4f6356;
+  --bg: #e5e2db;
+  --surface: #f8f6f1;
+  --ink: #2b2926;
+  --muted: #74726e;
+  --line: #cbc7be;
+  --brand: #34495a;
+  --brand-dark: #273744;
+  --brand-soft: #e5e5e2;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #ece4d0;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #d9e2d7;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #d8e2e6;
+  --rose: #ad6672;
+  --rose-soft: #e8dada;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #cecac2;
+  --tile: #cecac2;
+}
+:root[data-theme="yilbasi"] {
+  color-scheme: light;
+  --head: #6e2328;
+  --accent: #2f4a3c;
+  --bg: #eaded7;
+  --surface: #faf4ef;
+  --ink: #2f2622;
+  --muted: #836861;
+  --line: #d4c1b6;
+  --brand: #6e2328;
+  --brand-dark: #521a1e;
+  --brand-soft: #ece0db;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #efe2cd;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #dde0d4;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dce0e3;
+  --rose: #ad6672;
+  --rose-soft: #ebd7d7;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #d7c4ba;
+  --tile: #d7c4ba;
+}
+:root[data-theme="sevgililer"] {
+  color-scheme: light;
+  --head: #8a3448;
+  --accent: #a9586a;
+  --bg: #ece0da;
+  --surface: #fbf5f0;
+  --ink: #322725;
+  --muted: #8a6c69;
+  --line: #d9c4bb;
+  --brand: #8a3448;
+  --brand-dark: #682736;
+  --brand-soft: #f0e2df;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #f1e3cf;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #dfe1d6;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dee1e5;
+  --rose: #ad6672;
+  --rose-soft: #edd8d9;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #dbc7bf;
+  --tile: #dbc7bf;
 }
 :root[data-theme="dogumgunu"] {
-  --bg-top: #d3b3f7;
-  --bg: #eedcfa;
-  --surface: #fbf4ff;
-  --line: #e2c8f4;
-  --ink: #2e1d3a;
-  --muted: #7a5f8c;
-  --brand: #8e3fd6;
-  --brand-dark: #6527a8;
-  --brand-soft: #e8d4fb;
-  --xp: #f0a512;
-  --xp-ink: #7d5404;
-  --xp-soft: #fde8bd;
-  --fire: #ff6a3d;
-  --sage: #1fa86f;
-  --sage-ink: #137a50;
-  --sage-soft: #cdf2e0;
-  --ice: #2f8ff0;
-  --ice-ink: #1c69bf;
-  --ice-soft: #d6e8fd;
-  --rose: #ec3f8c;
-  --rose-soft: #fdd2e6;
-  --danger: #c02a3a;
-  --danger-soft: #fcd3d8;
-  --warn-soft: #fde9c6;
+  color-scheme: light;
+  --head: #5b3a52;
+  --accent: #9c7436;
+  --bg: #e8e1da;
+  --surface: #f9f5f0;
+  --ink: #2e2826;
+  --muted: #7e6e6c;
+  --line: #d1c5bd;
+  --brand: #5b3a52;
+  --brand-dark: #442c3e;
+  --brand-soft: #eae3e1;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #eee3cf;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #dce1d7;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dbe1e6;
+  --rose: #ad6672;
+  --rose-soft: #ead9d9;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #d4c8c1;
+  --tile: #d4c8c1;
 }
 :root[data-theme="yildonumu"] {
-  --bg-top: #eeb3b7;
-  --bg: #f6dcd9;
-  --surface: #fff4f2;
-  --line: #efc9c6;
-  --ink: #3a1e22;
-  --muted: #86595e;
-  --brand: #c23b55;
-  --brand-dark: #8f2638;
-  --brand-soft: #f9d2da;
-  --xp: #c99a3c;
-  --xp-ink: #7a5a1a;
-  --xp-soft: #f6e6c6;
-  --fire: #d9603a;
-  --sage: #4f8a5d;
-  --sage-ink: #376544;
-  --sage-soft: #d7ecdc;
-  --ice: #5f86c4;
-  --ice-ink: #415f96;
-  --ice-soft: #dde6f6;
-  --rose: #d0567a;
-  --rose-soft: #fad6e0;
-  --danger: #b0282a;
-  --danger-soft: #f9d4d0;
-  --warn-soft: #f8e6cc;
+  color-scheme: light;
+  --head: #4a3a32;
+  --accent: #8e6c4c;
+  --bg: #e7e1d8;
+  --surface: #f9f5ef;
+  --ink: #2d2823;
+  --muted: #7a6e64;
+  --line: #cfc5b8;
+  --brand: #4a3a32;
+  --brand-dark: #382c26;
+  --brand-soft: #e7e3dd;
+  --on-brand: #ffffff;
+  --xp: #b98a2c;
+  --xp-ink: #7a5a14;
+  --xp-soft: #ede3ce;
+  --fire: #c4692f;
+  --sage: #5f7f5a;
+  --sage-ink: #43603f;
+  --sage-soft: #dbe1d5;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #dae1e4;
+  --rose: #ad6672;
+  --rose-soft: #e9d9d7;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #d1c8bc;
+  --tile: #d1c8bc;
 }
 :root[data-theme="gece"] {
   color-scheme: dark;
-  --bg-top: #2b2147;
-  --bg: #171320;
-  --surface: #241d30;
-  --line: #3a3149;
-  --ink: #efe7f5;
-  --muted: #a596b5;
-  --brand: #e07a4f;
-  --brand-dark: #f5b08c;
-  --brand-soft: #432a28;
+  --head: #18264a;
+  --accent: #2a3e6e;
+  --bg: #0f1830;
+  --surface: #16213d;
+  --ink: #e6eaf5;
+  --muted: #8f9bb8;
+  --line: #24335a;
+  --brand: #9db4e8;
+  --brand-dark: #c6d4f3;
+  --brand-soft: #1f2c4f;
+  --on-brand: #0f1830;
   --xp: #e6b04a;
   --xp-ink: #f2cd85;
-  --xp-soft: #3b3020;
+  --xp-soft: #2a2a2c;
   --fire: #f08040;
   --sage: #7fc08a;
   --sage-ink: #b5e0bb;
-  --sage-soft: #22342a;
+  --sage-soft: #1c2e33;
   --ice: #6fb0e0;
   --ice-ink: #aad3f0;
-  --ice-soft: #1f2e44;
+  --ice-soft: #1a2b46;
   --rose: #e07b9a;
-  --rose-soft: #3d2433;
+  --rose-soft: #2e2340;
   --danger: #f07b6c;
-  --danger-soft: #42221f;
-  --warn-soft: #3a2f1f;
+  --danger-soft: #3a2230;
+  --warn-soft: #1b2848;
+  --tile: #1b2848;
 }
 
 @theme inline {
@@ -292,6 +327,10 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-warn-soft: var(--warn-soft);
+  --color-head: var(--head);
+  --color-accent: var(--accent);
+  --color-on-brand: var(--on-brand);
+  --color-tile: var(--tile);
 
   --font-sans: "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces Variable", ui-serif, Georgia, serif;
@@ -309,11 +348,8 @@ body {
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
 }
-/* Zemin html'de; böylece tema süslemeleri (kar, yaprak…) zeminin üstünde, kartların arkasında kalır */
 html {
-  /* Temanın havası: sayfanın üstünden zemine yumuşak bir renk geçişi */
-  background: linear-gradient(to bottom, var(--bg-top, var(--bg)), var(--bg) 70vh) no-repeat, var(--bg);
-  transition: background-color 400ms;
+  background: var(--bg);
 }
 body {
   background: transparent;
@@ -517,225 +553,58 @@ h2 {
   padding-top: max(0.75rem, env(safe-area-inset-top));
 }
 
-/* ---------------------------------------------------------------- tema süslemeleri */
-.decor {
-  position: fixed;
+/* ---------------------------------------------------------------- tema başlığı ve alt manzara */
+/* Sayfanın üstündeki fotoğraflı, renkli başlık; altı yuvarlak bir "sayfa" kenarıyla biter */
+.hero {
+  position: relative;
+  margin: -0.5rem -1rem 0;
+  padding: calc(max(0.75rem, env(safe-area-inset-top)) + 4.25rem) 1.375rem 3rem;
+  color: #f6ece4;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero-bg {
+  position: absolute;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-.decor-p {
-  position: absolute;
-  top: -8vh;
-  line-height: 1;
-  will-change: transform;
-  animation: decor-fall linear infinite;
-}
-.decor-p.rise {
-  top: auto;
-  bottom: -8vh;
-  animation-name: decor-rise;
-}
-.decor-p.twinkle {
-  animation: decor-twinkle ease-in-out infinite alternate;
-}
-.decor-flake {
-  border-radius: 9999px;
-  background: #a7bccc;
-  box-shadow: 0 0 3px rgb(255 255 255 / 0.9);
-}
-:root[data-theme="gece"] .decor-flake,
-:root[data-theme="gece"] .decor-star {
-  background: #f4e7c8;
-}
-.decor-star {
-  border-radius: 9999px;
-  background: #d8b45c;
-  box-shadow: 0 0 6px currentColor;
-}
-@keyframes decor-fall {
-  from {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate3d(var(--sway, 20px), 55vh, 0) rotate(160deg);
-  }
-  to {
-    transform: translate3d(0, 116vh, 0) rotate(320deg);
-  }
-}
-@keyframes decor-rise {
-  from {
-    transform: translate3d(0, 0, 0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  50% {
-    transform: translate3d(var(--sway, 20px), -55vh, 0);
-  }
-  to {
-    transform: translate3d(0, -116vh, 0);
-    opacity: 0.2;
-  }
-}
-@keyframes decor-twinkle {
-  from {
-    opacity: 0.15;
-    transform: scale(0.7);
-  }
-  to {
-    opacity: 0.9;
-    transform: scale(1.1);
-  }
-}
-
-/* Yaz: ekranın altında yavaşça dalgalanan deniz */
-.decor-waves {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30vh;
-}
-.decor-waves svg {
-  position: absolute;
-  bottom: 0;
-  width: 200%;
-  height: 100%;
-  animation: decor-wave 14s linear infinite;
-}
-.decor-waves svg + svg {
-  animation-duration: 22s;
-  animation-direction: reverse;
-  opacity: 0.7;
-}
-@keyframes decor-wave {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* Yılbaşı: üst çubuğun altında yanıp sönen ışık zinciri */
-:root[data-theme="yilbasi"] header::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -14px;
-  height: 18px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='18'%3E%3Cpath d='M0 3 Q16 11 32 6 T64 3' stroke='%234a3a30' stroke-opacity='0.55' fill='none' stroke-width='0.7'/%3E%3Ccircle cx='12' cy='7.6' r='6' fill='%23ffe3a0' fill-opacity='0.28'/%3E%3Ccircle cx='12' cy='7.6' r='1.7' fill='%23fff7dc'/%3E%3Ccircle cx='34' cy='5.8' r='5' fill='%23ffe3a0' fill-opacity='0.25'/%3E%3Ccircle cx='34' cy='5.8' r='1.4' fill='%23fff7dc'/%3E%3Ccircle cx='53' cy='4.2' r='6' fill='%23ffe3a0' fill-opacity='0.28'/%3E%3Ccircle cx='53' cy='4.2' r='1.7' fill='%23fff7dc'/%3E%3C/svg%3E") repeat-x 0 0 / 64px 18px;
-  animation: fairy 3.2s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-@keyframes fairy {
-  from {
-    opacity: 0.7;
-  }
-  to {
-    opacity: 1;
-    filter: brightness(1.15);
-  }
-}
-@keyframes lights {
-  50% {
-    filter: brightness(1.35) saturate(1.3);
-    opacity: 0.75;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .decor-p,
-  .decor-waves svg,
-  :root[data-theme="yilbasi"] header::after {
-    animation: none;
-  }
-  .decor-p {
-    display: none;
-  }
-}
-
-/* ---------------------------------------------------------------- tema manzarası ve süsler */
-.decor-scene {
-  position: absolute;
-  left: 0;
-  /* Alt menünün tam üstüne oturur (menü: 57px + güvenli alan) */
-  bottom: calc(56px + max(0.75rem, env(safe-area-inset-bottom)));
-  width: 100%;
-  height: 150px;
-}
-.decor-bubble {
-  border-radius: 9999px;
-  border: 1.5px solid rgb(20 156 224 / 0.45);
-  background: rgb(255 255 255 / 0.35);
-}
-
-/* Kış ve yılbaşı: kartların, alt menünün üstünde kar birikir */
-:root:is([data-theme="kis"], [data-theme="yilbasi"]) .card {
-  position: relative;
-}
-:root:is([data-theme="kis"], [data-theme="yilbasi"]) .card::before,
-:root:is([data-theme="kis"], [data-theme="yilbasi"]) nav.fixed::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  top: -5px;
-  height: 10px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='10'%3E%3Cpath d='M0 6 Q12 3 24 5 Q40 2 56 5 Q72 3 90 6 V10 H0Z' fill='white'/%3E%3C/svg%3E") repeat-x 0 0 / 90px 10px;
-  filter: drop-shadow(0 1px 1px rgb(70 100 130 / 0.22));
-  pointer-events: none;
-  z-index: 1;
-}
-:root:is([data-theme="kis"], [data-theme="yilbasi"]) nav.fixed::before {
-  left: 0;
-  right: 0;
-  top: -9px;
-}
-/* Kış: üst çubuktan buz sarkıtları */
-:root[data-theme="kis"] header::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -20px;
-  height: 20px;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='20'%3E%3Cg stroke='white' stroke-width='0.7' stroke-linecap='round' opacity='0.9'%3E%3Cg transform='translate(18 7)'%3E%3Cpath d='M0 -4 V4 M-3.5 -2 L3.5 2 M-3.5 2 L3.5 -2 M0 -4 l-1 -1 M0 -4 l1 -1 M0 4 l-1 1 M0 4 l1 1'/%3E%3C/g%3E%3Cg transform='translate(64 11) scale(0.7)'%3E%3Cpath d='M0 -4 V4 M-3.5 -2 L3.5 2 M-3.5 2 L3.5 -2'/%3E%3C/g%3E%3Cg transform='translate(98 5) scale(0.55)'%3E%3Cpath d='M0 -4 V4 M-3.5 -2 L3.5 2 M-3.5 2 L3.5 -2 M0 -4 l-1 -1 M0 -4 l1 -1'/%3E%3C/g%3E%3C/g%3E%3Ccircle cx='42' cy='4' r='0.8' fill='white'/%3E%3Ccircle cx='84' cy='14' r='0.7' fill='white'/%3E%3Ccircle cx='110' cy='13' r='0.6' fill='white'/%3E%3C/svg%3E") repeat-x 0 0 / 120px 20px,
-    linear-gradient(to bottom, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0));
-  pointer-events: none;
+    linear-gradient(180deg, color-mix(in srgb, var(--head) 82%, transparent), color-mix(in srgb, var(--head) 90%, transparent)),
+    var(--hero-photo) center / cover,
+    var(--head);
 }
-:root[data-theme="kis"] header {
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.7);
-}
-:root[data-theme="sevgililer"] header::after,
-:root[data-theme="dogumgunu"] header::after,
-:root[data-theme="yildonumu"] header::after {
+.hero::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -15px;
-  height: 16px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='16'%3E%3Cpath d='M0 2 Q22 9 44 2' stroke='%23c2405f' fill='none' stroke-width='1'/%3E%3Cpath d='M22 15 C14 10 15 4 19 4 C21 4 22 6 22 6 C22 6 23 4 25 4 C29 4 30 10 22 15Z' fill='%23f0386a'/%3E%3C/svg%3E") repeat-x 0 0 / 44px 16px;
+  bottom: -1px;
+  height: 1.75rem;
+  border-radius: 1.75rem 1.75rem 0 0;
+  background: var(--bg);
+}
+.hero .hero-sub {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+.hero h1 {
+  font-weight: 350;
+  font-size: 2.125rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+/* Sayfanın altındaki fotoğraf: yukarı doğru silinir, kartların arkasında kalır */
+.foot {
+  /* İçeriğin hemen ardından başlar (main'in alt boşluğunun üstüne biner); içerikle asla çakışmaz */
+  position: relative;
+  margin: -6rem -0rem 0;
+  height: 26rem;
+  z-index: 0;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to top, #000 50%, transparent);
+  mask-image: linear-gradient(to top, #000 50%, transparent);
 }
-:root[data-theme="dogumgunu"] header::after {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='16'%3E%3Cpath d='M0 1 Q36 6 72 1' stroke='%23999' fill='none' stroke-width='0.8'/%3E%3Cpath d='M4 2 L16 3 L10 15Z' fill='%23ec3f8c'/%3E%3Cpath d='M22 3.5 L34 4 L28 16Z' fill='%23ffb21c'/%3E%3Cpath d='M40 4 L52 3.5 L46 16Z' fill='%232f8ff0'/%3E%3Cpath d='M58 3 L70 1.8 L64 14Z' fill='%231fa86f'/%3E%3C/svg%3E") repeat-x 0 0 / 72px 16px;
-}
-:root[data-theme="yildonumu"] header::after {
-  height: 12px;
-  bottom: -11px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12'%3E%3Cpath d='M0 1 Q20 7 40 1' stroke='%23a07050' fill='none' stroke-width='0.8'/%3E%3Ccircle cx='20' cy='7' r='3.2' fill='%23ffd27a'/%3E%3Ccircle cx='20' cy='7' r='5.5' fill='%23ffd27a' opacity='0.3'/%3E%3C/svg%3E") repeat-x 0 0 / 40px 12px;
-  animation: lights 2.4s ease-in-out infinite;
-}
-
-/* Manzara sayfa sonunda görünsün diye içeriğin altında biraz boşluk */
-:root[data-scene] main {
-  padding-bottom: 13rem;
+.ekose {
+  background-image:
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.06) 0 6px, transparent 6px 14px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.06) 0 6px, transparent 6px 14px);
 }

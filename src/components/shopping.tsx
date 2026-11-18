@@ -53,7 +53,7 @@ export default function ShoppingList({
             maxLength={400}
             aria-label="Ürün ekle"
           />
-          <button className="btn bg-brand px-4 text-white" disabled={busy || !text.trim()} onClick={() => add(text)}>
+          <button className="btn bg-brand px-4 text-on-brand" disabled={busy || !text.trim()} onClick={() => add(text)}>
             Ekle
           </button>
         </div>

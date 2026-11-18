@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { getReward } from "@/lib/shop";
@@ -14,14 +14,7 @@ export default async function EditRewardPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <div className="mt-3 mb-4 flex items-center gap-2 px-1">
-        <Link href="/magaza" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">
-          {r.emoji} {r.title}
-        </h1>
-      </div>
+      <Hero back="/magaza" title={<>{r.emoji} {r.title}</>} />
       {r.creator_id === me.id ? (
         <RewardForm
           partnerName={partner.name}

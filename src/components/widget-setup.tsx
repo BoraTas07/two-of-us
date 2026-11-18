@@ -8,7 +8,7 @@ type Platform = "ios" | "android" | "other";
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2">
-      <span className="chip mt-0.5 shrink-0 bg-brand text-white">{n}</span>
+      <span className="chip mt-0.5 shrink-0 bg-brand text-on-brand">{n}</span>
       <span>{children}</span>
     </li>
   );
@@ -19,7 +19,7 @@ function CopyButton({ text, label, done }: { text: string; label: string; done: 
   return (
     <button
       type="button"
-      className="btn w-full bg-brand text-white"
+      className="btn w-full bg-brand text-on-brand"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text);
@@ -69,7 +69,7 @@ function AndroidSteps({ dataUrl }: { dataUrl: string }) {
     <ol className="space-y-2.5 text-sm font-semibold">
       <Step n={1}>
         Widget uygulamasını indir.
-        <a href="/two-of-us-widget.apk" download className="btn mt-2 w-full bg-brand text-white">
+        <a href="/two-of-us-widget.apk" download className="btn mt-2 w-full bg-brand text-on-brand">
           ⬇️ Widget uygulamasını indir (APK)
         </a>
       </Step>

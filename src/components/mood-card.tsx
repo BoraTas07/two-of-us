@@ -107,7 +107,7 @@ export default function MoodCard({
                 placeholder="Bir not ekle (isteğe bağlı)"
                 maxLength={140}
               />
-              <button className="btn w-full bg-brand text-white" disabled={busy} onClick={save}>
+              <button className="btn w-full bg-brand text-on-brand" disabled={busy} onClick={save}>
                 {busy ? "Paylaşılıyor..." : `${partner.name} ile paylaş`}
               </button>
             </div>

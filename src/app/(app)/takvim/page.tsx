@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Hero from "@/components/hero";
 import { connection } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { dayDetail, monthSummary } from "@/lib/calendar";
@@ -48,12 +49,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/biz" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">Anı takvimi</h1>
-      </div>
+      <Hero back="/biz" title="Anı takvimi" />
 
       <div className="card mt-3 p-3">
         <div className="mb-2 flex items-center justify-between px-1">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon, type IconName } from "./icons";
 import { recentEmojis } from "@/lib/emoji-server";
 import { distanceMeters, locationOf } from "@/lib/location";
 import { unseenMoments } from "@/lib/moments";
@@ -18,7 +19,7 @@ function ago(iso: string) {
   return min < 1 ? "az önce" : min < 60 ? `${min} dk` : min < 1440 ? `${Math.round(min / 60)} sa` : "1+ gün";
 }
 
-type Item = { href: string; icon: string; title: string; sub: string; hot?: boolean; badge?: number };
+type Item = { href: string; icon: IconName; emoji?: string; title: string; sub: string; hot?: boolean; badge?: number };
 
 /**
  * Bugün sayfasının en üstündeki yana kayan küçük özet kartları. Dokununca "Biz"
@@ -49,7 +50,8 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
   const items: Item[] = [
     {
       href: "/biz#his",
-      icon: theirMood ? MOOD_BY_KEY[theirMood.mood]?.emoji ?? "💭" : "💭",
+      icon: "smile",
+      emoji: theirMood ? MOOD_BY_KEY[theirMood.mood]?.emoji : undefined,
       title: theirMood ? partner.name : "Nasıl hissediyor?",
       sub: theirMood
         ? MOOD_BY_KEY[theirMood.mood]?.label ?? ""
@@ -60,14 +62,14 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
     },
     {
       href: "/biz#soru",
-      icon: "❓",
+      icon: "question",
       title: "Günün sorusu",
-      sub: iAnswered ? (theyAnswered ? "Cevaplar açık" : "Cevap bekleniyor") : theyAnswered ? `${partner.name} cevapladı` : "+5 🥕",
+      sub: iAnswered ? (theyAnswered ? "Cevaplar açık" : "Cevap bekleniyor") : theyAnswered ? `${partner.name} cevapladı` : "Cevapla, +5",
       hot: !iAnswered,
     },
     {
       href: "/sensiz",
-      icon: "💌",
+      icon: "mail",
       title: "Sensiz",
       sub: unseen.count > 0 ? `${unseen.count} yeni` : "Paylaş",
       hot: unseen.count > 0,
@@ -75,33 +77,34 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
     },
     {
       href: "/biz#icin",
-      icon: "💝",
+      icon: "gift",
       title: "Onun için",
       sub: forMe > 0 ? `${partner.name}: ${forMe}` : byMe > 0 ? `Sen: ${byMe}` : "Ne yaptın?",
       hot: forMe > 0,
     },
     {
       href: "/biz#sarki",
-      icon: "🎵",
+      icon: "music",
       title: "Şarkı",
       sub: theirSong ? theirSong.title : mySong ? "Paylaştın" : "Paylaş",
       hot: !!theirSong && !theirSong.reaction,
     },
     {
       href: "/biz#emoji",
-      icon: lastEmoji?.emoji ?? "😘",
+      icon: "emoji",
+      emoji: lastEmoji?.emoji,
       title: "Emoji",
       sub: lastEmoji ? `${partner.name} gönderdi` : "Gönder",
     },
     {
       href: "/liste",
-      icon: "🛒",
+      icon: "cart",
       title: "Alışveriş",
       sub: shop ? `${shop} ürün` : "Liste boş",
     },
     {
       href: "/konum",
-      icon: "📍",
+      icon: "pin",
       title: "Konum",
       sub: partnerLoc
         ? `${myLoc ? km(distanceMeters(myLoc, partnerLoc)) + " · " : ""}${ago(partnerLoc.updatedAt)}`
@@ -110,25 +113,25 @@ export default async function TogetherStrip({ me, partner, today }: { me: Profil
   ];
 
   return (
-    <nav aria-label="Birlikte" className="-mx-4 mt-3">
+    <nav aria-label="Birlikte" className="-mx-4 mt-1">
       <ul className="flex snap-x gap-2 overflow-x-auto px-4 pt-1 pb-1 [scrollbar-width:none]">
         {items.map((it) => (
           <li key={it.href} className="snap-start">
             <Link
               href={it.href}
-              className={`relative flex h-[52px] w-[124px] items-center gap-2 rounded-full border py-1.5 pr-3 pl-2.5 ${
-                it.hot ? "border-brand/40 bg-brand-soft" : "border-line bg-surface"
+              className={`relative flex h-[84px] w-[100px] flex-col justify-between rounded-[1.1rem] border px-3 py-2.5 ${
+                it.hot ? "border-brand/30 bg-brand-soft" : "border-line bg-surface"
               }`}
             >
-              <span className="text-2xl leading-none" aria-hidden>
-                {it.icon}
+              <span className="flex h-6 items-center text-brand">
+                {it.emoji ? <span className="text-xl leading-none">{it.emoji}</span> : <Icon name={it.icon} size={21} />}
               </span>
               <span className="min-w-0 leading-tight">
-                <span className="block truncate text-xs font-black">{it.title}</span>
-                <span className="block truncate text-[11px] font-semibold text-muted">{it.sub}</span>
+                <span className="block truncate text-[12.5px] font-semibold">{it.title}</span>
+                <span className="block truncate text-[11px] text-muted">{it.sub}</span>
               </span>
               {it.badge ? (
-                <span className="absolute -top-1 right-1 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-black text-white">
+                <span className="absolute top-2 right-2 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-bold text-on-brand">
                   {it.badge}
                 </span>
               ) : null}

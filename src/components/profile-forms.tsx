@@ -27,7 +27,7 @@ export function ProfileForm({
       <EmojiPicker name="emoji" options={AVATAR_EMOJIS} value={emoji} onChange={setEmoji} color={color} />
       <ColorPicker name="color" value={color} onChange={setColor} taken={partnerColor} />
       <Status state={state} />
-      <button className="btn w-full bg-brand text-white" disabled={pending}>
+      <button className="btn w-full bg-brand text-on-brand" disabled={pending}>
         Kaydet
       </button>
     </form>

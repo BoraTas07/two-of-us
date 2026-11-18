@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { markMomentsSeen, momentsPage } from "@/lib/moments";
 import { formatLong, formatRelative, todayStr } from "@/lib/time";
@@ -23,15 +24,7 @@ export default async function SensizPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl leading-tight">Sensiz İçime Sinmiyor</h1>
-      </div>
-      <p className="mt-1 mb-3 px-1 text-sm font-semibold text-muted">
-        Gün içinde ayrıyken görüp beğendiğin, &quot;keşke burada olsaydı&quot; dediğin şeyler.
-      </p>
+      <Hero back="/" title="Sensiz İçime Sinmiyor" desc={<>Gün içinde ayrıyken görüp beğendiğin, &quot;keşke burada olsaydı&quot; dediğin şeyler.</>} />
 
       {!before && <MomentComposer partnerName={partner.name} />}
 

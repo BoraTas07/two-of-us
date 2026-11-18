@@ -88,7 +88,7 @@ export default function DeedCard({
       )}
 
       {!open ? (
-        <button className="btn w-full bg-brand text-white" onClick={() => setOpen(true)}>
+        <button className="btn w-full bg-brand text-on-brand" onClick={() => setOpen(true)}>
           💝 Bugün {partner.name} için ne yaptın?
         </button>
       ) : (
@@ -103,7 +103,7 @@ export default function DeedCard({
                   setEmoji(p.emoji);
                   setText(p.text);
                 }}
-                className={`chip px-3 py-1.5 ${text === p.text ? "bg-brand text-white" : "bg-bg text-ink"}`}
+                className={`chip px-3 py-1.5 ${text === p.text ? "bg-brand text-on-brand" : "bg-bg text-ink"}`}
               >
                 {p.emoji} {p.text}
               </button>
@@ -124,7 +124,7 @@ export default function DeedCard({
             <button className="btn bg-surface text-muted" onClick={() => setOpen(false)}>
               Vazgeç
             </button>
-            <button className="btn bg-brand text-white" disabled={busy || !text.trim()} onClick={save}>
+            <button className="btn bg-brand text-on-brand" disabled={busy || !text.trim()} onClick={save}>
               Kaydet
             </button>
           </div>

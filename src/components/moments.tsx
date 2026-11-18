@@ -101,7 +101,7 @@ export function MomentComposer({ partnerName }: { partnerName: string }) {
         <button type="button" className="btn bg-surface text-ink" disabled={busy} onClick={() => input.current?.click()}>
           📷 {preview ? "Değiştir" : "Fotoğraf"}
         </button>
-        <button className="btn bg-brand text-white" disabled={busy || (!text.trim() && !blob)} onClick={send}>
+        <button className="btn bg-brand text-on-brand" disabled={busy || (!text.trim() && !blob)} onClick={send}>
           {busy ? "..." : "💌 Paylaş"}
         </button>
       </div>

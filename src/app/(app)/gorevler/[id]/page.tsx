@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
@@ -35,15 +35,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <div className="mt-3 mb-1 flex items-center gap-2 px-1">
-        <Link href="/gorevler" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl font-black">
-          {t.emoji} {t.title}
-        </h1>
-      </div>
-      <p className="mb-4 px-1 text-sm font-semibold text-muted">{creator} oluşturdu</p>
+      <Hero back="/gorevler" title={<>{t.emoji} {t.title}</>} desc={<>{creator} oluşturdu</>} />
 
       {item && (
         <div className="mb-5">

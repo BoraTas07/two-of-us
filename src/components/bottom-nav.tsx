@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const stroke = {
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.8,
+  strokeWidth: 1.6,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
@@ -57,15 +57,19 @@ export default function BottomNav() {
         : path.startsWith(href) || (href === "/biz" && path.startsWith("/istatistik"));
 
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur">
-      <div className="mx-auto flex max-w-md items-center justify-around px-2 pt-2">
+    <nav
+      data-bottom-nav
+      className="fixed inset-x-3 z-30 mx-auto max-w-[26rem] rounded-[1.6rem] border border-line bg-surface/90 shadow-[0_10px_30px_-12px_rgb(0_0_0/0.25)] backdrop-blur-xl"
+      style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
+      <div className="flex items-center justify-around px-1 py-2">
         {ITEMS.map((it) =>
           it.big ? (
             <Link
               key={it.href}
               href={it.href}
               aria-label="Yeni görev ekle"
-              className="btn h-12 w-12 rounded-full bg-brand p-0 text-white"
+              className="btn h-12 w-12 rounded-full bg-brand p-0 text-on-brand"
             >
               <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
                 <path {...stroke} strokeWidth={2.2} d="M12 5v14M5 12h14" />
@@ -80,7 +84,7 @@ export default function BottomNav() {
               }`}
               aria-current={active(it.href) ? "page" : undefined}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden>
                 {ICONS[it.icon]}
               </svg>
               {it.label}

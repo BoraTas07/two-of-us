@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { shopView } from "@/lib/shop";
 import { formatShort, todayStr } from "@/lib/time";
@@ -14,12 +15,15 @@ export default async function ShopPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center justify-between px-1">
-        <h1 className="text-2xl">Mağaza</h1>
-        <Link href="/magaza/yeni" className="btn bg-brand py-2 text-sm text-white">
-          + Ödül ekle
-        </Link>
-      </div>
+      <Hero
+        title="Mağaza"
+        desc="Havuçlarını birbirinizden ödül istemek için harca."
+        right={
+          <Link href="/magaza/yeni" className="btn mb-1 bg-[#f6ece4] px-3.5 py-2 text-sm text-head">
+            + Ödül
+          </Link>
+        }
+      />
 
       <div className="card mt-3 flex items-center gap-4 p-4">
         <span className="text-4xl" aria-hidden>

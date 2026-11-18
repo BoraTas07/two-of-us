@@ -195,7 +195,7 @@ export default function ObjectionPanel({
             required={kind === "task"}
           />
           {state?.error && <p className="text-sm font-semibold text-danger">{state.error}</p>}
-          <button className="btn w-full bg-brand text-white" disabled={pending}>
+          <button className="btn w-full bg-brand text-on-brand" disabled={pending}>
             {pending ? "Gönderiliyor..." : `${partnerName} için gönder`}
           </button>
         </form>

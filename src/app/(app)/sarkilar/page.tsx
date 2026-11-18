@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { songHistory } from "@/lib/songs";
 import { formatLong, formatRelative, todayStr } from "@/lib/time";
@@ -15,13 +15,7 @@ export default async function SongsPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/biz#sarki" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">Şarkılarımız</h1>
-      </div>
-      <p className="mt-1 px-1 text-sm font-semibold text-muted">Günün şarkılarınızın arşivi.</p>
+      <Hero back="/biz#sarki" title="Şarkılarımız" desc="Günün şarkılarınızın arşivi." />
 
       {days.length === 0 ? (
         <div className="mt-4">

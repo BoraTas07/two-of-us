@@ -2,7 +2,10 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { evaluateStreaks, xpTotals } from "@/lib/game";
 import { loadState, personSummary } from "@/lib/views";
-import { Avatar, Carrots, Flame, ProgressBar } from "@/components/ui";
+import { Avatar } from "@/components/ui";
+import { Icon } from "@/components/icons";
+import ThemeFx from "@/components/theme-fx";
+import { currentTheme } from "@/lib/theme-server";
 import { balanceOf } from "@/lib/shop";
 import BottomNav from "@/components/bottom-nav";
 import AutoRefresh from "@/components/auto-refresh";
@@ -24,49 +27,52 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const unseen = await unseenEmojis(me.id);
   const unread = await unreadCount(me.id);
   const sharingLocation = await sharingOf(me.id);
+  const theme = await currentTheme();
 
   return (
-    <div className="mx-auto min-h-dvh max-w-md">
-      <header className="safe-top sticky top-0 z-20 border-b border-line bg-[color-mix(in_srgb,var(--bg-top,var(--bg))_90%,transparent)] px-4 pb-3 backdrop-blur">
+    <div className="relative mx-auto min-h-dvh max-w-md">
+      <header className="safe-top absolute inset-x-0 top-0 z-20 px-4 pb-3 text-[#f6ece4]">
         <div className="flex items-center gap-3">
           <Link href="/profil" aria-label="Profilim" className="relative">
-            <Avatar emoji={me.emoji} color={me.color} size={44} />
+            <Avatar emoji={me.emoji} color={me.color} size={40} />
           </Link>
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between text-xs font-extrabold text-muted">
-              <span className="truncate">
-                Sv. {s.level.level} · {s.level.title}
+            <div className="truncate text-sm font-bold">{me.name}</div>
+            <div className="flex items-center gap-2 text-[11px] opacity-80">
+              <span className="truncate">Sv. {s.level.level} · {s.level.title}</span>
+              <span className="h-1 w-12 shrink-0 overflow-hidden rounded-full bg-white/25" title={`${s.level.intoLevel}/${s.level.needed}`}>
+                <span className="block h-full rounded-full bg-white/85" style={{ width: `${Math.round((s.level.intoLevel / Math.max(1, s.level.needed)) * 100)}%` }} />
               </span>
-              <span title="Bir sonraki seviyeye">
-                {s.level.intoLevel}/{s.level.needed}
-              </span>
-            </div>
-            <div className="mt-1">
-              <ProgressBar value={s.level.intoLevel} max={s.level.needed} color="var(--xp)" height={12} />
             </div>
           </div>
-          <Link href="/magaza" className="flex items-center gap-2.5" aria-label="Havuç, seri ve joker">
-            <Carrots n={balance} className="text-sm font-black text-xp-ink" />
-            <Flame streak={s.streak} lit={s.todayDone} size={18} />
-            <span className="flex items-center text-sm font-black text-ice-ink" title="Seri koruma jokeri">
-              🧊{me.freezes}
-            </span>
+          <Link href="/magaza" className="flex items-center gap-2.5 text-sm font-semibold" aria-label="Havuç, seri ve joker">
+            <span className="flex items-center gap-1"><Icon name="carrot" size={16} />{balance}</span>
+            <span className={`flex items-center gap-1 ${s.todayDone ? "" : "opacity-60"}`}><Icon name="flame" size={16} />{s.streak}</span>
+            <span className="flex items-center gap-1 opacity-80" title="Seri koruma jokeri"><Icon name="snowflake" size={15} />{me.freezes}</span>
           </Link>
           <Link
             href="/bildirimler"
-            className="relative -mr-1 flex h-9 w-9 items-center justify-center rounded-full text-lg"
+            className="relative -mr-1 flex h-9 w-9 items-center justify-center rounded-full"
             aria-label={unread ? `Bildirimler, ${unread} okunmamış` : "Bildirimler"}
           >
-            <span aria-hidden>🔔</span>
+            <Icon name="bell" size={21} />
             {unread > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] rounded-full bg-brand px-1 text-center text-[10px] leading-[18px] font-black text-white ring-2 ring-bg">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] rounded-full bg-[#f6ece4] px-1 text-center text-[10px] leading-[18px] font-black text-head">
                 {unread > 9 ? "9+" : unread}
               </span>
             )}
           </Link>
         </div>
       </header>
-      <main className="px-4 pt-2 pb-32">{children}</main>
+      <main className="relative z-[1] px-4 pt-2 pb-24">{children}</main>
+      <div
+        className="foot"
+        style={{
+          background: `linear-gradient(180deg, color-mix(in srgb, var(--head) ${Math.round((theme.def.footTint?.[0] ?? 0.4) * 100)}%, transparent), color-mix(in srgb, var(--head) ${Math.round((theme.def.footTint?.[1] ?? 0.65) * 100)}%, transparent)), url(${theme.def.foot}) ${theme.def.footPos ?? "center bottom"} / cover, var(--head)`,
+        }}
+      >
+        {theme.decor && <ThemeFx layers={theme.def.footFx} />}
+      </div>
       <BottomNav />
       <AutoRefresh />
       <Celebration />

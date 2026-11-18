@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { todayStr, weekday } from "@/lib/time";
 import TaskForm from "@/components/task-form";
@@ -10,12 +10,7 @@ export default async function NewTaskPage() {
   const today = todayStr();
   return (
     <>
-      <div className="mt-3 mb-4 flex items-center gap-2 px-1">
-        <Link href="/gorevler" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl font-black">Yeni görev</h1>
-      </div>
+      <Hero back="/gorevler" title="Yeni görev" />
       <TaskForm
         partnerName={partner.name}
         today={today}

@@ -3,7 +3,9 @@ import { genitive } from "./tr";
 // Renk temaları. "Otomatik" seçiliyse tema mevsime ve özel günlere göre kendiliğinden değişir.
 // Öncelik: doğum günü > yıl dönümü > Sevgililer Günü > yılbaşı > mevsim.
 
-export type Decor = "snow" | "xmas" | "hearts" | "petals" | "waves" | "leaves" | "confetti" | "sparkle" | "stars" | null;
+/** Hareket katmanları (src/components/theme-fx.tsx) */
+export type FxKind = "snow" | "snowpile" | "bokeh" | "petals" | "leaves" | "glints" | "waves" | "candle" | "golddust" | "hearts" | "stars" | "shooting";
+export type FxLayer = [FxKind, Record<string, unknown>?];
 
 export type ThemeKey =
   | "cozy"
@@ -20,30 +22,95 @@ export type ThemeKey =
 export type ThemeDef = {
   key: ThemeKey;
   name: string;
-  emoji: string;
   desc: string;
-  decor: Decor;
-  /** Telefonun üst çubuğu ve önizleme renkleri */
-  bg: string;
-  /** Sayfanın üstündeki renk geçişinin başladığı ton (telefonun üst çubuğu da bu renk olur) */
-  top: string;
-  brand: string;
+  /** Başlığın rengi (fotoğrafın üstüne bu renk örtülür); düğmeler ve vurgular da bu renk */
+  head: string;
+  /** Partner kartı gibi ikinci vurgu rengi */
   accent: string;
+  /** Partner kartında ince ekose desen */
+  plaid?: boolean;
+  dark?: boolean;
+  /** Sayfanın zemini (telefonun alt çubuğu için) */
+  bg: string;
+  /** Başlıktaki fotoğraf ve sayfanın altındaki fotoğraf (public/themes) */
+  photo: string;
+  foot: string;
+  footPos?: string;
+  /** Alttaki fotoğrafın üstündeki renk örtüsünün koyuluğu (0–1) */
+  footTint?: [number, number];
+  fx: FxLayer[];
+  footFx: FxLayer[];
   /** Sadece otomatik olarak, özel günlerde gelir (elle de seçilebilir) */
   special?: boolean;
 };
 
+const LEAF = ["#e2601c", "#f0a12c", "#b8361a", "#f6c046"];
+
 export const THEMES: Record<ThemeKey, ThemeDef> = {
-  cozy: { key: "cozy", name: "Cozy", emoji: "🧺", desc: "Yulaf, kiremit ve adaçayı", decor: null, bg: "#f4eee5", top: "#f4eee5", brand: "#a65d3c", accent: "#6e8a5d" },
-  kis: { key: "kis", name: "Kış", emoji: "❄️", desc: "Karlı tepeler, sıcak kulübe ve kar", decor: "snow", bg: "#ecdcd2", top: "#b9d0e6", brand: "#c0262f", accent: "#1f6e48" },
-  yilbasi: { key: "yilbasi", name: "Yılbaşı", emoji: "🎄", desc: "Karlı çamlar, ışıklar ve hediyeler", decor: "xmas", bg: "#f2d8d0", top: "#f0a9a6", brand: "#d01f2e", accent: "#157a42", special: true },
-  sevgililer: { key: "sevgililer", name: "Sevgililer Günü", emoji: "💝", desc: "Gül pembesi ve uçuşan kalpler", decor: "hearts", bg: "#fdd8e2", top: "#ffadc2", brand: "#e0285a", accent: "#e08a2e", special: true },
-  ilkbahar: { key: "ilkbahar", name: "İlkbahar", emoji: "🌸", desc: "Açık pasteller ve çiçek yaprakları", decor: "petals", bg: "#e6f4d8", top: "#bfe6f7", brand: "#c2408a", accent: "#2fa55a" },
-  yaz: { key: "yaz", name: "Yaz", emoji: "🌊", desc: "Kum, güneş sarısı ve deniz mavisi", decor: "waves", bg: "#fdebbd", top: "#8fd8f2", brand: "#0a85b6", accent: "#0fa08a" },
-  sonbahar: { key: "sonbahar", name: "Sonbahar", emoji: "🎃", desc: "Balkabağı, tarçın ve kahve", decor: "leaves", bg: "#f8d9b4", top: "#f2a35a", brand: "#d4561a", accent: "#b56a12" },
-  dogumgunu: { key: "dogumgunu", name: "Doğum günü", emoji: "🎂", desc: "Konfeti ve balonlar", decor: "confetti", bg: "#eedcfa", top: "#d3b3f7", brand: "#8e3fd6", accent: "#1fa86f", special: true },
-  yildonumu: { key: "yildonumu", name: "Yıl dönümü", emoji: "💞", desc: "Gül kurusu ve şampanya", decor: "sparkle", bg: "#f6dcd9", top: "#eeb3b7", brand: "#c23b55", accent: "#c99a3c", special: true },
-  gece: { key: "gece", name: "Gece", emoji: "🌙", desc: "Göz yormayan koyu tema", decor: "stars", bg: "#171320", top: "#2b2147", brand: "#e07a4f", accent: "#e6b04a" },
+  cozy: {
+    key: "cozy", name: "Cozy", desc: "Fildişi ve orman yeşili; hareketsiz, sade",
+    head: "#2f4a3c", accent: "#a65d3c", bg: "#e4e2d9",
+    photo: "/themes/cozy.webp", foot: "/themes/cozy.webp", footTint: [0.55, 0.75], fx: [], footFx: [],
+  },
+  ilkbahar: {
+    key: "ilkbahar", name: "İlkbahar", desc: "Kiraz çiçekleri ve süzülen yapraklar",
+    head: "#a5567a", accent: "#5f9150", bg: "#efe3de",
+    photo: "/themes/ilkbahar.webp", foot: "/themes/ilkbahar-alt.webp", footPos: "center 40%", footTint: [0.08, 0.2],
+    fx: [["bokeh", { colors: ["255,240,225"], n: 6 }], ["petals", { color: "#ffd0de", n: 18, min: 6, max: 11 }]],
+    footFx: [["petals", { color: "#ffc4d6", n: 14, min: 6, max: 11 }]],
+  },
+  yaz: {
+    key: "yaz", name: "Yaz", desc: "Yumuşak deniz mavisi ve dalgalar",
+    head: "#5e96aa", accent: "#b9603f", bg: "#e8e9e2",
+    photo: "/themes/yaz.webp", foot: "/themes/yaz.webp", footTint: [0.45, 0.7],
+    fx: [["waves"], ["glints", { n: 12 }]],
+    footFx: [["waves"], ["glints", { n: 10 }]],
+  },
+  sonbahar: {
+    key: "sonbahar", name: "Sonbahar", desc: "Sarı yapraklı ağaçlar ve düşen yapraklar",
+    head: "#a2471a", accent: "#6a7429", bg: "#eee2d5",
+    photo: "/themes/sonbahar.webp", foot: "/themes/sonbahar-alt.webp", footPos: "center 45%", footTint: [0.08, 0.2],
+    fx: [["bokeh", { colors: ["255,200,120"], n: 6 }], ["leaves", { colors: LEAF, n: 13, min: 9, max: 15 }]],
+    footFx: [["leaves", { colors: LEAF, n: 10, min: 9, max: 15 }]],
+  },
+  kis: {
+    key: "kis", name: "Kış", desc: "Kar yağar, menünün üstünde birikir",
+    head: "#34495a", accent: "#4f6356", bg: "#e5e2db",
+    photo: "/themes/kis.webp", foot: "/themes/kis-alt.webp", footPos: "center 70%", footTint: [0.15, 0.3],
+    fx: [["snow", { n: 95 }]], footFx: [["snowpile"]],
+  },
+  yilbasi: {
+    key: "yilbasi", name: "Yılbaşı", desc: "Kar, sıcak ışıklar ve süslü çam", plaid: true, special: true,
+    head: "#6e2328", accent: "#2f4a3c", bg: "#eaded7",
+    photo: "/themes/yilbasi.webp", foot: "/themes/yilbasi-alt.webp", footPos: "center 40%", footTint: [0.08, 0.25],
+    fx: [["bokeh", { colors: ["255,205,130", "255,180,110", "255,230,170"], n: 12 }], ["snow", { n: 60 }]],
+    footFx: [["bokeh", { colors: ["255,205,130"], n: 5 }], ["snow", { n: 45 }]],
+  },
+  sevgililer: {
+    key: "sevgililer", name: "Sevgililer Günü", desc: "Pembe ışıklar ve yükselen kalpler", special: true,
+    head: "#8a3448", accent: "#a9586a", bg: "#ece0da",
+    photo: "/themes/sevgililer.webp", foot: "/themes/sevgililer.webp", footTint: [0.4, 0.65],
+    fx: [["bokeh", { colors: ["255,190,200", "255,220,215"], n: 8 }], ["hearts", { colors: ["#ff8fa8", "#ffc2cf", "#e8546f"], n: 14 }]],
+    footFx: [["hearts", { colors: ["#ff8fa8", "#ffc2cf", "#e8546f"], n: 10 }]],
+  },
+  dogumgunu: {
+    key: "dogumgunu", name: "Doğum günü", desc: "Mum ışığı ve altın parıltılar", special: true,
+    head: "#5b3a52", accent: "#9c7436", bg: "#e8e1da",
+    photo: "/themes/dogumgunu.webp", foot: "/themes/dogumgunu.webp", footTint: [0.4, 0.65],
+    fx: [["candle"], ["golddust"]], footFx: [["golddust", { n: 18 }]],
+  },
+  yildonumu: {
+    key: "yildonumu", name: "Yıl dönümü", desc: "Mum ışığında bir masa", special: true,
+    head: "#4a3a32", accent: "#8e6c4c", bg: "#e7e1d8",
+    photo: "/themes/yildonumu.webp", foot: "/themes/yildonumu.webp", footTint: [0.4, 0.65],
+    fx: [["candle", { n: 9 }], ["bokeh", { colors: ["255,215,150"], n: 6 }]], footFx: [["candle", { n: 5 }]],
+  },
+  gece: {
+    key: "gece", name: "Gece", desc: "Lacivert gökyüzü ve yanıp sönen yıldızlar", dark: true,
+    head: "#18264a", accent: "#2a3e6e", bg: "#0f1830",
+    photo: "/themes/gece.webp", foot: "/themes/gece.webp", footTint: [0.35, 0.6],
+    fx: [["stars"], ["shooting"]], footFx: [["stars", { n: 40 }]],
+  },
 };
 
 export const THEME_ORDER: ThemeKey[] = ["cozy", "ilkbahar", "yaz", "sonbahar", "kis", "yilbasi", "sevgililer", "dogumgunu", "yildonumu", "gece"];

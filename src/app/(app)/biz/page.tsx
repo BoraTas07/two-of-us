@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Hero from "@/components/hero";
+import { Icon, type IconName } from "@/components/icons";
 import { requireUser } from "@/lib/auth";
 import { BADGES } from "@/lib/badges";
 import { sql } from "@/lib/db";
@@ -64,22 +66,20 @@ export default async function UsPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center justify-between px-1">
-        <h1 className="text-2xl font-black">Biz</h1>
-      </div>
+      <Hero title="Biz" desc={<>{me.name} & {partner.name} · ortak köşeniz</>} />
 
-      <nav aria-label="Birlikte" className="mt-3 grid grid-cols-3 gap-2">
+      <nav aria-label="Birlikte" className="mt-1 grid grid-cols-3 gap-2">
         {[
-          { href: "/liste", icon: "🛒", label: "Alışveriş", sub: shopCount ? `${shopCount} ürün` : "Liste boş" },
-          { href: "/hayaller", icon: "🌟", label: "Hayaller", sub: `${openDreams} sırada` },
-          { href: "/takvim", icon: "📅", label: "Anılar", sub: "Takvim" },
-          { href: "/sorular", icon: "❓", label: "Sorular", sub: "Arşiv & ekle" },
-          { href: "/sensiz", icon: "💌", label: "Sensiz", sub: unseenM.count ? `${unseenM.count} yeni` : "Paylaş" },
-          { href: "/istatistik", icon: "📊", label: "İstatistik", sub: "30 gün" },
+          { href: "/liste", icon: "cart", label: "Alışveriş", sub: shopCount ? `${shopCount} ürün` : "Liste boş" },
+          { href: "/hayaller", icon: "star", label: "Hayaller", sub: `${openDreams} sırada` },
+          { href: "/takvim", icon: "calendar", label: "Anılar", sub: "Takvim" },
+          { href: "/sorular", icon: "question", label: "Sorular", sub: "Arşiv & ekle" },
+          { href: "/sensiz", icon: "mail", label: "Sensiz", sub: unseenM.count ? `${unseenM.count} yeni` : "Paylaş" },
+          { href: "/istatistik", icon: "chart", label: "İstatistik", sub: "30 gün" },
         ].map((t) => (
           <Link key={t.href} href={t.href} className="card flex flex-col items-center px-2 py-3 text-center">
-            <span className="text-2xl" aria-hidden>
-              {t.icon}
+            <span className="text-brand">
+              <Icon name={t.icon as IconName} size={22} />
             </span>
             <span className="mt-1 text-sm font-black">{t.label}</span>
             <span className="text-[11px] font-semibold text-muted">{t.sub}</span>

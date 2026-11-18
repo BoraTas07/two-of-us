@@ -215,9 +215,16 @@ export async function todayView(me: Profile, partner: Profile) {
   const goal = { target: await weeklyGoalTarget(), ...(await weekProgress(week)) };
 
   const swapOffers = state.sub.swaps.filter((x) => x.status === "pending" && x.to_id === me.id);
+  // Başlıktaki gün şeridi: bugünün iki gün öncesi ve sonrası; o günün görevlerini bitirdiysen işaretli
+  const strip = [-2, -1, 0, 1, 2].map((k) => {
+    const day = addDays(today, k);
+    const r = k <= 0 ? dayResult(me.id, day, tasks, idx) : null;
+    return { day, wd: WEEKDAYS_SHORT[weekday(day)], num: Number(day.slice(8, 10)), today: k === 0, done: !!r && r.due > 0 && r.done >= r.due };
+  });
 
   return {
     today,
+    week: strip,
     swapOffers,
     me: await personSummary(me, state, totals),
     partner: await personSummary(partner, state, totals),

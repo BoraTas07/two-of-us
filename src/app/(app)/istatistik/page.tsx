@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { sql } from "@/lib/db";
 import { dayResult } from "@/lib/game";
@@ -74,12 +74,7 @@ export default async function StatsPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/biz" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl font-black">İstatistik</h1>
-      </div>
+      <Hero back="/biz" title="İstatistik" />
       {nobody && (
         <div className="mt-4">
           <Empty emoji="📈">Görev bitirdikçe burada grafikler belirecek.</Empty>

@@ -75,7 +75,7 @@ export default function CarrotSlider({
               setText(null);
               onChange(q);
             }}
-            className={`chip px-3 py-1.5 ${value === q ? "bg-brand text-white" : "bg-line text-muted"}`}
+            className={`chip px-3 py-1.5 ${value === q ? "bg-brand text-on-brand" : "bg-line text-muted"}`}
           >
             {q === 0 ? "Bonus yok" : q}
           </button>

@@ -24,7 +24,7 @@ export function DreamForm() {
 
   if (!open)
     return (
-      <button className="btn w-full bg-brand text-white" onClick={() => setOpen(true)}>
+      <button className="btn w-full bg-brand text-on-brand" onClick={() => setOpen(true)}>
         + Yeni hayal ekle
       </button>
     );
@@ -68,7 +68,7 @@ export function DreamForm() {
         <button className="btn bg-surface text-muted" onClick={() => setOpen(false)} disabled={busy}>
           Vazgeç
         </button>
-        <button className="btn bg-brand text-white" onClick={save} disabled={busy || !title.trim()}>
+        <button className="btn bg-brand text-on-brand" onClick={save} disabled={busy || !title.trim()}>
           Ekle
         </button>
       </div>
@@ -127,7 +127,7 @@ export function DreamCard({ d, me, partner }: { d: Dream; me: Person; partner: P
             <CarrotChip n={d.xp} /> ikinize · {creator}
           </div>
         </div>
-        <button className="btn shrink-0 bg-brand px-3 py-2 text-sm text-white" onClick={() => setSheet(true)}>
+        <button className="btn shrink-0 bg-brand px-3 py-2 text-sm text-on-brand" onClick={() => setSheet(true)}>
           ✨ Yaptık
         </button>
       </div>
@@ -205,7 +205,7 @@ function CompleteSheet({ d, onClose }: { d: Dream; onClose: () => void }) {
             <button className="btn bg-bg text-ink" disabled={busy} onClick={() => input.current?.click()}>
               📷 {preview ? "Değiştir" : "Fotoğraf"}
             </button>
-            <button className="btn bg-brand text-white" disabled={busy} onClick={send}>
+            <button className="btn bg-brand text-on-brand" disabled={busy} onClick={send}>
               {busy ? "..." : preview ? "✨ Kaydet" : "✨ Fotoğrafsız kaydet"}
             </button>
           </div>

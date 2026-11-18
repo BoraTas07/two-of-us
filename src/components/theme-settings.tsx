@@ -47,20 +47,22 @@ export default function ThemeSettings({
         onClick={() => choose(k)}
         aria-pressed={active}
         disabled={busy && !active}
-        className={`flex items-center gap-2.5 rounded-2xl border p-2.5 text-left transition-transform active:scale-95 ${
-          active ? "border-brand ring-2 ring-brand" : "border-line"
+        className={`relative flex h-[4.5rem] items-end overflow-hidden rounded-2xl p-2.5 text-left text-[#f6ece4] transition-transform active:scale-95 ${
+          active ? "ring-[3px] ring-brand ring-offset-2 ring-offset-surface" : ""
         }`}
-        style={{ background: t.bg }}
+        style={{
+          background: `linear-gradient(180deg, ${t.head}b3, ${t.head}e6), url(${t.photo}) center / cover`,
+        }}
       >
-        <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full" style={{ background: t.brand }} aria-hidden>
-          <span className="absolute right-0 bottom-0 h-4 w-4 rounded-tl-full" style={{ background: t.accent }} />
+        <span className="min-w-0">
+          <span className="block font-serif text-[15px] leading-tight">{label}</span>
+          <span className="block truncate text-[11px] opacity-80">{sub}</span>
         </span>
-        <span className="min-w-0" style={{ color: t.key === "gece" ? "#efe7dd" : "#3b332d" }}>
-          <span className="block text-sm leading-tight font-black">
-            {k === "auto" ? "✨" : t.emoji} {label}
+        {active && (
+          <span className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#f6ece4] text-[11px] font-black" style={{ color: t.head }}>
+            ✓
           </span>
-          <span className="block truncate text-[11px] font-semibold opacity-70">{sub}</span>
-        </span>
+        )}
       </button>
     );
   };
@@ -69,15 +71,15 @@ export default function ThemeSettings({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
         <div className="col-span-2">
-          {swatch("auto", "Otomatik (önerilen)", `Mevsime ve özel günlere göre · şu an ${auto.emoji} ${auto.name}`)}
+          {swatch("auto", "Otomatik (önerilen)", `Mevsime ve özel günlere göre · şu an ${auto.name}`)}
         </div>
         {THEME_ORDER.map((k) => swatch(k, THEMES[k].name, THEMES[k].desc))}
       </div>
 
       <label className="flex items-center justify-between gap-3 rounded-2xl bg-bg px-3 py-2.5">
         <span className="text-sm font-semibold">
-          <b className="font-black">Süslemeler</b>
-          <span className="block text-xs text-muted">Kar, yaprak, kalp, dalga… (pil dostu, istersen kapat)</span>
+          <b className="font-black">Hareketli süslemeler</b>
+          <span className="block text-xs font-normal text-muted">Kar, yaprak, kalp, dalga, yıldız… Kapatırsan fotoğraflar kalır, hareket durur.</span>
         </span>
         <input
           type="checkbox"

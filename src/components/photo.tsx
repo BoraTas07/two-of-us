@@ -131,7 +131,7 @@ export function PhotoSheet({
       <div className="mt-4 space-y-2">
         {blob ? (
           <>
-            <button className="btn w-full bg-brand text-white" disabled={busy} onClick={send}>
+            <button className="btn w-full bg-brand text-on-brand" disabled={busy} onClick={send}>
               {busy ? "Gönderiliyor..." : "Gönder"}
             </button>
             <button className="btn w-full bg-surface text-ink" disabled={busy} onClick={() => input.current?.click()}>
@@ -139,7 +139,7 @@ export function PhotoSheet({
             </button>
           </>
         ) : (
-          <button className="btn w-full bg-brand text-white" disabled={busy} onClick={() => input.current?.click()}>
+          <button className="btn w-full bg-brand text-on-brand" disabled={busy} onClick={() => input.current?.click()}>
             {busy ? "Hazırlanıyor..." : "Fotoğraf çek / seç"}
           </button>
         )}
@@ -224,7 +224,7 @@ export function PhotoViewer({
       </div>
       <div className="mt-4 space-y-2">
         {state !== "error" && (
-          <button className="btn w-full bg-brand text-white" disabled={state === "loading"} onClick={open}>
+          <button className="btn w-full bg-brand text-on-brand" disabled={state === "loading"} onClick={open}>
             {state === "loading" ? "Açılıyor..." : "Şimdi aç"}
           </button>
         )}

@@ -51,7 +51,7 @@ export function QuestionCard({ q, me, partner }: { q: DayQuestion; me: Person; p
                   Vazgeç
                 </button>
               )}
-              <button className="btn flex-1 bg-brand text-sm text-white" onClick={save} disabled={busy || !text.trim()}>
+              <button className="btn flex-1 bg-brand text-sm text-on-brand" onClick={save} disabled={busy || !text.trim()}>
                 {busy ? "..." : mine ? "Kaydet" : "Cevapla · +5 🥕"}
               </button>
             </div>
@@ -119,7 +119,7 @@ export function AskForm({ queued }: { queued: { id: number; text: string }[] }) 
           maxLength={200}
           aria-label="Yeni soru"
         />
-        <button className="btn bg-brand px-3 text-sm text-white" disabled={busy || !text.trim()} onClick={add}>
+        <button className="btn bg-brand px-3 text-sm text-on-brand" disabled={busy || !text.trim()} onClick={add}>
           Ekle
         </button>
       </div>

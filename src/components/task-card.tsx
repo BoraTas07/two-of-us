@@ -5,10 +5,9 @@ import { useOptimistic, useState, useTransition } from "react";
 import { completeAction, completeSubtaskAction, undoAction, undoSubtaskAction } from "@/app/actions";
 import { formatRelative } from "@/lib/time";
 import { ablative, dative } from "@/lib/tr";
-import { SHARED_COLOR, colorOf } from "@/lib/types";
 import type { SubItem, TaskItem } from "@/lib/views";
 import { celebrate } from "./celebration";
-import { CarrotChip } from "./ui";
+import { Icon } from "./icons";
 import { PhotoSheet } from "./photo";
 
 type Person = { id: number; name: string; emoji: string; color: string };
@@ -19,6 +18,7 @@ export default function TaskCard({
   partner,
   today,
   subsOpen = true,
+  variant = "card",
 }: {
   item: TaskItem;
   me: Person;
@@ -26,13 +26,14 @@ export default function TaskCard({
   today: string;
   /** Alt görev listesi açık başlasın mı */
   subsOpen?: boolean;
+  /** "row": kart çerçevesi olmadan, bir listenin satırı olarak */
+  variant?: "card" | "row";
 }) {
   const [isPending, start] = useTransition();
   const [done, setDone] = useOptimistic(item.done);
   const [error, setError] = useState<string | null>(null);
   // Kanıt fotoğrafı penceresi: açık olduğu tamamlama kaydı
   const [photoFor, setPhotoFor] = useState<number | null>(null);
-  const c = item.shared ? SHARED_COLOR : colorOf(item.assigneeId === me.id ? me.color : partner.color);
   const mineDone = !!done && done.byId === me.id;
   const doneBy = done ? (done.byId === me.id ? me : partner) : null;
   const subCount = item.subtasks.length;
@@ -75,109 +76,96 @@ export default function TaskCard({
     });
   }
 
-  const meta: React.ReactNode[] = [];
-  if (item.overdue) meta.push(<span key="o" className="chip bg-danger-soft text-danger">Gecikti</span>);
-  if (item.objected) meta.push(<span key="x" className="chip bg-warn-soft text-xp-ink">⚖️ İtiraz var</span>);
-  if (item.kind === "habit")
-    meta.push(
-      <span key="h" className="chip bg-brand-soft text-brand-dark">
-        🔥 {item.habitStreak} gün
-      </span>,
-    );
-  if (item.kind !== "once" && item.repeatText)
-    meta.push(<span key="r" className="chip bg-line text-muted">🔁 {item.repeatText}</span>);
-  if (item.kind === "once" && item.dueDate && !item.overdue)
-    meta.push(<span key="d" className="chip bg-line text-muted">📅 {formatRelative(item.dueDate, today)}</span>);
-  if (item.remindTime) meta.push(<span key="t" className="chip bg-ice-soft text-ice-ink">⏰ {item.remindTime}</span>);
-  if (item.requiresApproval && !item.shared)
-    meta.push(
-      <span key="a" className="chip bg-line text-ink">
-        🤝 Onaylı{item.requiresPhoto ? " · 📷" : ""}
-      </span>,
-    );
+  // Sade bilgi satırı: "37 havuç · her gün · 20:00" + gerekiyorsa küçük renkli etiketler
+  const facts: string[] = [];
+  facts.push(`${subCount ? subTotal : item.xp} havuç`);
+  if (item.shared) facts.push("birlikte");
+  if (item.kind === "habit") facts.push(`🔥 ${item.habitStreak} gün`);
+  if (item.kind !== "once" && item.repeatText) facts.push(item.repeatText.toLocaleLowerCase("tr"));
+  if (item.kind === "once" && item.dueDate && !item.overdue) facts.push(formatRelative(item.dueDate, today));
+  if (item.remindTime) facts.push(item.remindTime);
+  if (item.requiresApproval && !item.shared) facts.push(item.requiresPhoto ? "onaylı · foto" : "onaylı");
+  if (!item.shared && item.creatorId !== item.assigneeId && item.swap?.status !== "accepted")
+    facts.push(item.creatorId === me.id ? "sen verdin" : `${partner.name} verdi`);
+  if (subCount) facts.push(`${subDone}/${subCount} adım`);
+
+  const tags: React.ReactNode[] = [];
+  if (item.overdue) tags.push(<span key="o" className="text-danger">Gecikti</span>);
+  if (item.objected) tags.push(<span key="x" className="text-xp-ink">⚖️ İtiraz var</span>);
   if (item.swap?.status === "accepted")
-    meta.push(
-      <span key="s" className="chip bg-ice-soft text-ice-ink">
+    tags.push(
+      <span key="s" className="text-ice-ink">
         🔄 {item.swap.fromMe ? `${dative(partner.name)} devrettin` : `${ablative(partner.name)} devraldın`}
         {item.swap.bonus ? ` · +${item.swap.bonus} bonus` : ""}
       </span>,
     );
-  else if (item.swap?.status === "pending")
-    meta.push(
-      <span key="s" className="chip bg-ice-soft text-ice-ink">
-        🔄 Takas teklifi
-      </span>,
-    );
-  if (!item.shared && item.creatorId !== item.assigneeId && item.swap?.status !== "accepted") {
-    const giver = item.creatorId === me.id ? me : partner;
-    meta.push(
-      <span key="g" className="chip bg-line text-muted">
-        {giver.emoji} {giver.id === me.id ? "Sen verdin" : `${giver.name} verdi`}
-      </span>,
-    );
-  }
+  else if (item.swap?.status === "pending") tags.push(<span key="s" className="text-ice-ink">🔄 Takas teklifi</span>);
+  if (!item.canComplete && !done && item.blockedReason) tags.push(<span key="b">{item.blockedReason}</span>);
 
-  let action: React.ReactNode;
+  // Soldaki daire: dokununca tamamla / (kendi tamamlamansa) geri al
+  const ring = "flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full transition-colors";
+  let check: React.ReactNode;
   if (done?.status === "approved") {
-    action = mineDone ? (
-      <button onClick={undo} disabled={isPending} className="btn bg-sage-soft px-3 py-2 text-sm text-sage-ink" title="Geri almak için dokun">
-        ✓ Bitti
+    check = (
+      <button
+        onClick={undo}
+        disabled={isPending || !mineDone}
+        className={`${ring} ${mineDone ? "bg-brand text-on-brand" : "bg-muted/40 text-surface"}`}
+        aria-label={mineDone ? `${item.title}: tamamlandı, geri almak için dokun` : `${item.title}: ${doneBy?.name} bitirdi`}
+        title={mineDone ? "Geri almak için dokun" : `${doneBy?.name} bitirdi`}
+      >
+        <Icon name="check" size={15} strokeWidth={2.4} />
       </button>
-    ) : (
-      <span className="chip bg-sage-soft px-2.5 py-1.5 text-sage-ink">
-        ✓ {doneBy?.emoji} bitirdi
-      </span>
     );
   } else if (done?.status === "pending") {
-    action = mineDone ? (
-      <button onClick={undo} disabled={isPending} className="btn bg-warn-soft px-3 py-2 text-sm text-xp-ink" title="Geri almak için dokun">
-        ⏳ Onayda
+    check = (
+      <button
+        onClick={undo}
+        disabled={isPending || !mineDone}
+        className={`${ring} border-[1.5px] border-xp text-xp-ink`}
+        aria-label={`${item.title}: onay bekliyor`}
+        title="Onay bekliyor"
+      >
+        <Icon name="clock" size={14} />
       </button>
-    ) : (
-      <span className="chip bg-warn-soft px-2.5 py-1.5 text-xp-ink">⏳ Onayda</span>
     );
   } else if (item.canComplete) {
-    action = (
+    check = (
       <button
         onClick={complete}
         disabled={isPending}
         aria-label={`${item.title} görevini tamamla`}
-        className="btn bg-brand px-3.5 py-2 text-sm text-white"
-      >
-        {subCount > 0 && subDone < subCount ? "Hepsini bitir" : "Tamamla"}
-      </button>
+        className={`${ring} border-[1.5px] border-brand text-brand hover:bg-brand-soft active:scale-90`}
+      />
     );
   } else {
-    action = <span className="max-w-24 text-right text-xs leading-tight font-semibold text-muted">{item.blockedReason}</span>;
+    check = <span className={`${ring} border-[1.5px] border-dashed border-line`} aria-hidden />;
   }
 
   return (
-    <div className={`card p-3 transition-opacity ${done?.status === "approved" ? "opacity-75" : ""}`}>
+    <div className={variant === "row" ? "py-2.5" : "card px-4 py-3"}>
       <div className="flex items-center gap-3">
-        <Link
-          href={`/gorevler/${item.id}`}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
-          style={{ background: c.soft, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${c.bg} 25%, transparent)` }}
-          aria-hidden
-          tabIndex={-1}
-        >
-          {item.emoji}
-        </Link>
+        {check}
         <Link href={`/gorevler/${item.id}`} className="min-w-0 flex-1">
-          <div className={`leading-tight font-extrabold ${done?.status === "approved" ? "text-muted line-through" : ""}`}>
+          <div className={`leading-snug ${done?.status === "approved" ? "text-muted line-through" : ""}`}>
+            {item.emoji && item.emoji !== "✅" && <span className="mr-1">{item.emoji}</span>}
             {item.title}
           </div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            <CarrotChip n={subCount ? subTotal : item.xp} faded={!!done} />
-            {subCount > 0 && (
-              <span className={`chip ${subDone === subCount ? "bg-sage-soft text-sage-ink" : "bg-line text-ink"}`}>
-                ☑ {subDone}/{subCount}
+          <div className="mt-0.5 text-xs text-muted">
+            {facts.join(" · ")}
+            {tags.length > 0 && (
+              <span className="ml-1.5 inline-flex flex-wrap gap-x-2 font-semibold">
+                {tags}
               </span>
             )}
-            {meta}
           </div>
         </Link>
-        <div className="shrink-0">{action}</div>
+        {done && !mineDone && doneBy && <span className="shrink-0 text-sm" title={`${doneBy.name} bitirdi`}>{doneBy.emoji}</span>}
+        {!done && item.canComplete && subCount > 0 && subDone < subCount && (
+          <button onClick={complete} disabled={isPending} className="shrink-0 text-xs font-semibold text-brand">
+            Hepsini bitir
+          </button>
+        )}
       </div>
       {done?.status === "pending" && mineDone && item.completionId && (
         <div className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-bg px-3 py-2 text-xs font-semibold">
@@ -190,7 +178,7 @@ export default function TaskCard({
               <span className={item.requiresPhoto ? "text-danger" : "text-muted"}>
                 {item.requiresPhoto ? "📷 Bu görev fotoğraf istiyor" : "📷 Kanıt fotoğrafı ekleyebilirsin"}
               </span>
-              <button className="btn bg-brand px-3 py-1.5 text-xs text-white" onClick={() => setPhotoFor(item.completionId)}>
+              <button className="btn bg-brand px-3 py-1.5 text-xs text-on-brand" onClick={() => setPhotoFor(item.completionId)}>
                 Fotoğraf ekle
               </button>
             </>
@@ -207,11 +195,11 @@ export default function TaskCard({
       )}
       {subCount > 0 && (
         <details className="group mt-2" open={subsOpen}>
-          <summary className="cursor-pointer list-none px-1 text-xs font-semibold text-muted">
+          <summary className="cursor-pointer list-none pl-[38px] text-xs font-semibold text-muted">
             <span className="group-open:hidden">Adımları göster ▾</span>
             <span className="hidden group-open:inline">Adımları gizle ▴</span>
           </summary>
-          <ul className="mt-1.5 space-y-1">
+          <ul className="mt-1.5 space-y-1 pl-[30px]">
             {item.subtasks.map((x) => (
               <SubRow
                 key={x.id}
@@ -227,7 +215,7 @@ export default function TaskCard({
             ))}
           </ul>
           {item.xp > 0 && (
-            <p className="mt-1.5 px-1 text-xs font-semibold text-muted">
+            <p className="mt-1.5 pl-[38px] text-xs font-semibold text-muted">
               Hepsi bitince +{item.xp} 🥕 bonus{item.requiresApproval && !item.shared ? " · havuçlar onaydan sonra gelir" : ""}
             </p>
           )}
@@ -308,7 +296,7 @@ function SubRow({
         <span
           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
             done?.status === "approved"
-              ? "bg-sage text-white"
+              ? "bg-brand text-on-brand"
               : done
                 ? "bg-warn-soft text-xp-ink ring-1 ring-xp"
                 : "ring-[1.5px] ring-line"

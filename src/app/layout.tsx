@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/fraunces";
 import "./globals.css";
-import ThemeDecor from "@/components/theme-decor";
 import { currentTheme } from "@/lib/theme-server";
 
 export const metadata: Metadata = {
@@ -18,7 +17,7 @@ export const metadata: Metadata = {
 export async function generateViewport(): Promise<Viewport> {
   const t = await currentTheme();
   return {
-    themeColor: t.def.top,
+    themeColor: t.def.head,
     colorScheme: t.def.key === "gece" ? "dark" : "light",
     width: "device-width",
     initialScale: 1,
@@ -30,11 +29,8 @@ export async function generateViewport(): Promise<Viewport> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const t = await currentTheme();
   return (
-    <html lang="tr" data-theme={t.def.key} data-scene={t.decor && t.def.decor ? "" : undefined}>
-      <body className="antialiased">
-        {t.decor && <ThemeDecor decor={t.def.decor} theme={t.def.key} />}
-        {children}
-      </body>
+    <html lang="tr" data-theme={t.def.key} style={{ "--hero-photo": `url(${t.def.photo})` } as React.CSSProperties}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

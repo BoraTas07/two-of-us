@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { connection } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { listDreams } from "@/lib/dreams";
@@ -17,15 +17,7 @@ export default async function DreamsPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/biz" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">Birlikte yapacaklarımız</h1>
-      </div>
-      <p className="mt-1 px-1 text-sm font-semibold text-muted">
-        Hayal listeniz. Gerçekleşince fotoğrafla işaretleyin; ikiniz de havuç kazanırsınız.
-      </p>
+      <Hero back="/biz" title="Birlikte yapacaklarımız" desc="Hayal listeniz. Gerçekleşince fotoğrafla işaretleyin; ikiniz de havuç kazanırsınız." />
 
       <div className="mt-4">
         <DreamForm />

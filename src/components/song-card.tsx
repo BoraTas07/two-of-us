@@ -76,7 +76,7 @@ function ShareForm({ onDone, initial }: { onDone: () => void; initial?: Song | n
         autoComplete="off"
       />
       {state?.error && <p className="text-sm font-semibold text-danger">{state.error}</p>}
-      <button className="btn w-full bg-brand text-white" disabled={pending}>
+      <button className="btn w-full bg-brand text-on-brand" disabled={pending}>
         {pending ? "Paylaşılıyor..." : "🎵 Paylaş"}
       </button>
     </form>

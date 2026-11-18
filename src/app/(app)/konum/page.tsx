@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { distanceMeters, locationOf, sharingOf } from "@/lib/location";
 import { colorOf } from "@/lib/types";
@@ -43,12 +43,7 @@ export default async function LocationPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">Konum</h1>
-      </div>
+      <Hero back="/" title="Konum" />
 
       <div className="card mt-3 p-3">
         {people.length ? (

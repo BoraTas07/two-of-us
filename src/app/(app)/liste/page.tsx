@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Hero from "@/components/hero";
 import { connection } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { frequentItems, openItems } from "@/lib/shopping";
@@ -13,12 +13,7 @@ export default async function ShoppingPage() {
   const P = (p: typeof me) => ({ id: p.id, name: p.name, emoji: p.emoji });
   return (
     <>
-      <div className="mt-3 mb-3 flex items-center gap-2 px-1">
-        <Link href="/biz" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">🛒 Alışveriş listesi</h1>
-      </div>
+      <Hero back="/biz" title="Alışveriş listesi" />
       <ShoppingList items={items} frequent={frequent} me={P(me)} partner={P(partner)} />
     </>
   );

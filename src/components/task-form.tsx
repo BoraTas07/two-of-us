@@ -162,7 +162,7 @@ export default function TaskForm({
                   <label
                     key={d}
                     className={`flex h-11 flex-1 cursor-pointer items-center justify-center rounded-xl text-sm font-black transition-colors ${
-                      on ? "bg-brand text-white shadow-[inset_0_-3px_0_var(--brand-dark)]" : "bg-surface text-muted"
+                      on ? "bg-brand text-on-brand shadow-[inset_0_-3px_0_var(--brand-dark)]" : "bg-surface text-muted"
                     }`}
                   >
                     <input
@@ -343,7 +343,7 @@ export default function TaskForm({
 
       {state?.error && <p className="animate-pop rounded-xl bg-danger-soft p-3 font-bold text-danger">{state.error}</p>}
 
-      <button className="btn w-full bg-brand text-lg text-white" disabled={pending}>
+      <button className="btn w-full bg-brand text-lg text-on-brand" disabled={pending}>
         {pending ? "Kaydediliyor..." : v.id ? "Kaydet" : "Görevi ekle ✨"}
       </button>
 

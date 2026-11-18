@@ -25,7 +25,7 @@ export function BuyButton({
   return (
     <div className="flex flex-col items-end gap-1">
       <button
-        className="btn bg-brand px-3.5 py-2 text-sm text-white"
+        className="btn bg-brand px-3.5 py-2 text-sm text-on-brand"
         disabled={busy}
         onClick={() => {
           if (!confirm(`"${title}" için ${cost} havuç harcansın mı? Partnerine talep olarak gidecek.`)) return;

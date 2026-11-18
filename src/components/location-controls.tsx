@@ -88,7 +88,7 @@ export function SharingCard({
             Açarsan {partnerName} haritada nerede olduğunu görebilir. Uygulama açıkken güncellenir, sadece son konumun
             saklanır ve istediğin an kapatabilirsin.
           </p>
-          <button className="btn mt-3 w-full bg-brand text-white" disabled={busy} onClick={enable}>
+          <button className="btn mt-3 w-full bg-brand text-on-brand" disabled={busy} onClick={enable}>
             {busy ? "Konum alınıyor..." : "Konumumu paylaşmaya başla"}
           </button>
         </>

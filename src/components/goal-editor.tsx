@@ -25,7 +25,7 @@ export default function GoalEditor({ target }: { target: number }) {
         +
       </button>
       <button
-        className="btn bg-brand px-3 py-1 text-white"
+        className="btn bg-brand px-3 py-1 text-on-brand"
         disabled={busy}
         onClick={() =>
           start(async () => {

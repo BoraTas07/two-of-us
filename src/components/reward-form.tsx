@@ -87,7 +87,7 @@ export default function RewardForm({ initial, partnerName }: { initial: RewardFo
                 key={q}
                 type="button"
                 onClick={() => set("cost", q)}
-                className={`chip px-3 py-1.5 ${v.cost === q ? "bg-brand text-white" : "bg-line text-muted"}`}
+                className={`chip px-3 py-1.5 ${v.cost === q ? "bg-brand text-on-brand" : "bg-line text-muted"}`}
               >
                 {q}
               </button>
@@ -98,7 +98,7 @@ export default function RewardForm({ initial, partnerName }: { initial: RewardFo
 
       {state?.error && <p className="animate-pop rounded-xl bg-danger-soft p-3 font-bold text-danger">{state.error}</p>}
 
-      <button className="btn w-full bg-brand text-lg text-white" disabled={pending}>
+      <button className="btn w-full bg-brand text-lg text-on-brand" disabled={pending}>
         {pending ? "Kaydediliyor..." : v.id ? "Kaydet" : "Mağazaya ekle"}
       </button>
 

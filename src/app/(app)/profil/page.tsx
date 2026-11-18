@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import Hero from "@/components/hero";
 import { logoutAction } from "@/app/actions";
 import { requireUser, widgetToken } from "@/lib/auth";
 import { scriptableSource } from "@/lib/widget-scriptable";
@@ -32,7 +33,7 @@ select cron.schedule('ikimiz-hatirlatma', '* * * * *',
 
   return (
     <>
-      <h1 className="mt-3 px-1 text-2xl font-black">Profil & Ayarlar</h1>
+      <Hero title="Profil & Ayarlar" />
 
       <SectionTitle>Profilim</SectionTitle>
       <div className="card p-4">

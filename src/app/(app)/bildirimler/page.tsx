@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Hero from "@/components/hero";
 import { requireUser } from "@/lib/auth";
 import { listNotifications, markAllRead } from "@/lib/notifications";
 import { formatLong, formatRelative, todayStr } from "@/lib/time";
@@ -20,15 +21,7 @@ export default async function NotificationsPage() {
 
   return (
     <>
-      <div className="mt-3 flex items-center gap-2 px-1">
-        <Link href="/" className="text-2xl text-muted" aria-label="Geri">
-          ←
-        </Link>
-        <h1 className="text-2xl">Bildirimler</h1>
-      </div>
-      <p className="mt-1 mb-3 px-1 text-sm font-semibold text-muted">
-        {partner.emoji} {partner.name} ile ilgili son 60 gün.
-      </p>
+      <Hero back="/" title="Bildirimler" desc={<>{partner.emoji} {partner.name} ile ilgili son 60 gün.</>} />
 
       {items.length === 0 ? (
         <Empty emoji="🔔">Henüz bildirim yok.</Empty>

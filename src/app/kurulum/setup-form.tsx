@@ -50,7 +50,7 @@ export default function SetupForm() {
       <Person i={0} defaultEmoji="🦊" color={c0} setColor={setC0} taken={c1} />
       <Person i={1} defaultEmoji="🐼" color={c1} setColor={setC1} taken={c0} />
       {state?.error && <p className="animate-pop rounded-xl bg-danger-soft p-3 font-bold text-danger">{state.error}</p>}
-      <button className="btn w-full bg-brand text-lg text-white" disabled={pending}>
+      <button className="btn w-full bg-brand text-lg text-on-brand" disabled={pending}>
         {pending ? "Hazırlanıyor..." : "Başlayalım 🚀"}
       </button>
     </form>

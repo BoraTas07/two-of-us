@@ -70,7 +70,7 @@ export function SwapPanel({
           <button
             key={q}
             type="button"
-            className={`chip px-3 py-1.5 ${bonus === q ? "bg-brand text-white" : "bg-line text-ink"}`}
+            className={`chip px-3 py-1.5 ${bonus === q ? "bg-brand text-on-brand" : "bg-line text-ink"}`}
             onClick={() => setBonus(q)}
             disabled={q > balance}
           >
@@ -94,7 +94,7 @@ export function SwapPanel({
         <button className="btn bg-surface text-muted" onClick={() => setOpen(false)} disabled={busy}>
           Vazgeç
         </button>
-        <button className="btn bg-brand text-white" onClick={send} disabled={busy || bonus > balance}>
+        <button className="btn bg-brand text-on-brand" onClick={send} disabled={busy || bonus > balance}>
           Teklif et
         </button>
       </div>
@@ -142,7 +142,7 @@ export function SwapOffer({
         <button className="btn bg-surface py-2 text-sm text-muted" disabled={busy} onClick={() => answer(false)}>
           Hayır
         </button>
-        <button className="btn bg-brand py-2 text-sm text-white" disabled={busy} onClick={() => answer(true)}>
+        <button className="btn bg-brand py-2 text-sm text-on-brand" disabled={busy} onClick={() => answer(true)}>
           🤝 Kabul et
         </button>
       </div>

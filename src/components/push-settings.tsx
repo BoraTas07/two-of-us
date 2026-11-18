@@ -59,7 +59,7 @@ function IosInstallSteps() {
     <ol className="mt-3 space-y-2 text-sm font-semibold">
       {steps.map((s, i) => (
         <li key={i} className="flex items-start gap-2">
-          <span className="chip mt-0.5 shrink-0 bg-brand text-white">{i + 1}</span>
+          <span className="chip mt-0.5 shrink-0 bg-brand text-on-brand">{i + 1}</span>
           <span>{s}</span>
         </li>
       ))}

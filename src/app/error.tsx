@@ -16,7 +16,7 @@ export default function Error({ error, retry }: { error: unknown; retry: () => v
         Sunucuya şu an ulaşılamıyor. Birkaç saniye sonra tekrar dene; sorun sürerse biraz bekleyip uygulamayı yeniden
         aç.
       </p>
-      <button className="btn mt-6 w-full bg-brand text-white" onClick={() => retry()}>
+      <button className="btn mt-6 w-full bg-brand text-on-brand" onClick={() => retry()}>
         Tekrar dene
       </button>
     </main>
