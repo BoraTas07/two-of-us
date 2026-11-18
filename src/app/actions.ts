@@ -627,3 +627,37 @@ export async function clearShopAction() {
   await clearChecked();
   refresh();
 }
+
+// ---------------------------------------------------------------- tema & özel günler
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export async function setThemeAction(choice: string) {
+  const { me } = await requireUser();
+  const { isThemeKey } = await import("@/lib/themes");
+  if (choice !== "auto" && !isThemeKey(choice)) return;
+  await sql`update profiles set theme = ${choice} where id = ${me.id}`;
+  refresh();
+}
+
+export async function setDecorAction(on: boolean) {
+  const { me } = await requireUser();
+  await sql`update profiles set decor = ${on} where id = ${me.id}`;
+  refresh();
+}
+
+export async function setBirthdayAction(date: string) {
+  const { me } = await requireUser();
+  if (date && (!DATE_RE.test(date) || date > todayStr())) return { error: "Geçerli bir tarih seç." };
+  await sql`update profiles set birthday = ${date || null} where id = ${me.id}`;
+  refresh();
+  return { ok: true };
+}
+
+export async function setAnniversaryAction(date: string) {
+  await requireUser();
+  if (date && (!DATE_RE.test(date) || date > todayStr())) return { error: "Geçerli bir tarih seç." };
+  await setConfig("anniversary", date);
+  refresh();
+  return { ok: true };
+}

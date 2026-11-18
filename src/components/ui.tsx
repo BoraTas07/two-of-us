@@ -20,7 +20,7 @@ export function Avatar({
         height: size,
         background: c.soft,
         fontSize: size * 0.55,
-        boxShadow: ring ? `0 0 0 3px var(--surface), 0 0 0 5px ${c.bg}` : `inset 0 0 0 1.5px ${c.bg}40`,
+        boxShadow: ring ? `0 0 0 3px var(--surface), 0 0 0 5px ${c.bg}` : `inset 0 0 0 1.5px color-mix(in srgb, ${c.bg} 25%, transparent)`,
       }}
       aria-hidden
     >
@@ -64,7 +64,7 @@ export function ProgressBar({
 
 export function Flame({ streak, lit, size = 22 }: { streak: number; lit: boolean; size?: number }) {
   return (
-    <span className="inline-flex items-center gap-1 font-black" style={{ color: lit ? "var(--fire)" : "#c2b6a8" }}>
+    <span className="inline-flex items-center gap-1 font-black" style={{ color: lit ? "var(--fire)" : "var(--muted)" }}>
       <span className={lit ? "animate-flicker" : "grayscale"} style={{ fontSize: size, display: "inline-block" }}>
         🔥
       </span>

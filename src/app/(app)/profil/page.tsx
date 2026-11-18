@@ -9,6 +9,8 @@ import { SectionTitle } from "@/components/ui";
 import PushSettings from "@/components/push-settings";
 import { PinForm, ProfileForm } from "@/components/profile-forms";
 import CopyBox from "@/components/copy-box";
+import ThemeSettings from "@/components/theme-settings";
+import { currentTheme } from "@/lib/theme-server";
 
 export const metadata = { title: "Profil — Two Of Us" };
 
@@ -20,6 +22,7 @@ export default async function ProfilePage() {
   const cronUrl = `${proto}://${host}/api/cron?key=${await cronKey()}`;
   const widgetUrl = `${proto}://${host}/api/widget?t=${encodeURIComponent(await widgetToken(me.id))}`;
   const lastRun = await getConfig("cron_last_run");
+  const theme = await currentTheme();
   const partnerSubs = await sql`select 1 from push_subscriptions where profile_id = ${partner.id} limit 1`;
 
   const cronSql = `create extension if not exists pg_cron;
@@ -35,6 +38,20 @@ select cron.schedule('ikimiz-hatirlatma', '* * * * *',
       <div className="card p-4">
         <ProfileForm initial={{ name: me.name, emoji: me.emoji, color: me.color }} partnerColor={partner.color} />
       </div>
+
+      <section id="tema">
+        <SectionTitle>🎨 Tema</SectionTitle>
+        <div className="card p-4">
+          <ThemeSettings
+            choice={theme.choice}
+            autoKey={theme.autoKey}
+            decor={theme.decor}
+            birthday={theme.birthday}
+            anniversary={theme.anniversary}
+            partnerName={partner.name}
+          />
+        </div>
+      </section>
 
       <section id="bildirimler">
         <SectionTitle>🔔 Bildirimler</SectionTitle>

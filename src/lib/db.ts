@@ -390,6 +390,11 @@ create table if not exists shopping_items (
   created_at timestamptz not null default now()
 );
 create index if not exists shopping_open on shopping_items (cleared_at, id);
+
+-- Renk teması: 'auto' = mevsime / özel güne göre; decor = kar, yaprak vb. süslemeler
+alter table profiles add column if not exists theme text not null default 'auto';
+alter table profiles add column if not exists decor boolean not null default true;
+alter table profiles add column if not exists birthday text;
 `;
 
 /**
@@ -397,7 +402,7 @@ create index if not exists shopping_open on shopping_items (cleared_at, id);
  * HİÇ şema komutu (ALTER TABLE vb.) çalışmaz. ALTER TABLE tabloyu tamamen kilitler; her açılışta
  * çalıştırmak, yarım kalmış bir bağlantı kilit tutarken bütün uygulamayı kilitleyebiliyordu.
  */
-const SCHEMA_VERSION = "16";
+const SCHEMA_VERSION = "17";
 
 /** Bir işlemin (transaction) asla sonsuza dek beklememesi için sınırlar */
 export async function txGuard(tx: { unsafe: postgres.Sql["unsafe"] }, statementSec = 15) {

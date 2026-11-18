@@ -12,6 +12,7 @@ import { pendingRewardCounts } from "@/lib/shop";
 import { objectionsToAnswer } from "@/lib/objections";
 import TogetherStrip from "@/components/together-strip";
 import { SwapOffer } from "@/components/swap";
+import { currentTheme } from "@/lib/theme-server";
 
 function allDoneColor(done: number, due: number) {
   return due > 0 && done >= due ? "var(--fire)" : "var(--sage)";
@@ -70,6 +71,7 @@ export default async function TodayPage() {
   const v = await todayView(me, partner);
   const rewards = await pendingRewardCounts(me.id);
   const toAnswer = await objectionsToAnswer(me.id);
+  const theme = await currentTheme();
   const people = {
     me: { id: me.id, name: me.name, emoji: me.emoji, color: me.color },
     partner: { id: partner.id, name: partner.name, emoji: partner.emoji, color: partner.color },
@@ -82,8 +84,8 @@ export default async function TodayPage() {
       <div className="mt-3 flex items-center gap-3 px-1">
         <div className="min-w-0 flex-1">
           <div className="text-sm font-extrabold text-muted">{formatLong(v.today)}</div>
-          <h1 className="truncate text-2xl font-black">
-            {greeting()}, {me.name}
+          <h1 className="text-2xl leading-tight font-black">
+            {theme.greeting ?? `${greeting()}, ${me.name}`}
           </h1>
           <div className="mt-0.5 text-sm font-semibold text-muted">
             {myCount.due === 0

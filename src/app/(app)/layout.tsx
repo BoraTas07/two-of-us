@@ -27,7 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="mx-auto min-h-dvh max-w-md">
-      <header className="safe-top sticky top-0 z-20 border-b border-line bg-bg/90 px-4 pb-3 backdrop-blur">
+      <header className="safe-top sticky top-0 z-20 border-b border-line bg-[color-mix(in_srgb,var(--bg-top,var(--bg))_90%,transparent)] px-4 pb-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <Link href="/profil" aria-label="Profilim" className="relative">
             <Avatar emoji={me.emoji} color={me.color} size={44} />

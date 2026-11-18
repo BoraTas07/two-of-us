@@ -31,7 +31,7 @@ export function EmojiPicker({
             style={
               value === e
                 ? { background: c.soft, boxShadow: `inset 0 0 0 2px ${c.bg}` }
-                : { background: "#f4ede3" }
+                : { background: "var(--bg)" }
             }
           >
             {e}

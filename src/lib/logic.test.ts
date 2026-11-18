@@ -169,3 +169,21 @@ describe("Türkçe ekler", () => {
     ]);
   });
 });
+
+import { autoTheme } from "./themes";
+describe("Otomatik tema", () => {
+  const ctx = { people: [{ name: "Ece", birthday: "1999-04-12", isMe: false }, { name: "Deniz", birthday: null, isMe: true }], anniversary: "2023-07-08" };
+  it("mevsimler ve özel günler", () => {
+    expect(autoTheme("2026-11-18", ctx).key).toBe("sonbahar");
+    expect(autoTheme("2026-12-05", ctx).key).toBe("kis");
+    expect(autoTheme("2026-12-24", ctx).key).toBe("yilbasi");
+    expect(autoTheme("2027-01-01", ctx)).toEqual({ key: "yilbasi", greeting: "Mutlu yıllar! 🎆" });
+    expect(autoTheme("2027-01-15", ctx).key).toBe("kis");
+    expect(autoTheme("2027-02-14", ctx).key).toBe("sevgililer");
+    expect(autoTheme("2027-03-01", ctx).key).toBe("ilkbahar");
+    expect(autoTheme("2027-06-20", ctx).key).toBe("yaz");
+    expect(autoTheme("2027-04-12", ctx)).toEqual({ key: "dogumgunu", greeting: "Bugün Ece'nin doğum günü! 🎂" });
+    expect(autoTheme("2027-07-08", ctx)).toEqual({ key: "yildonumu", greeting: "4. yılınız kutlu olsun! 💞" });
+    expect(autoTheme("2023-07-08", ctx).key).toBe("yaz");
+  });
+});

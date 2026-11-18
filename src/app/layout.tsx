@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/fraunces";
 import "./globals.css";
+import ThemeDecor from "@/components/theme-decor";
+import { currentTheme } from "@/lib/theme-server";
 
 export const metadata: Metadata = {
   title: "Two Of Us",
@@ -13,18 +15,26 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#f4eee5",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const t = await currentTheme();
+  return {
+    themeColor: t.def.top,
+    colorScheme: t.def.key === "gece" ? "dark" : "light",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    viewportFit: "cover",
+  };
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const t = await currentTheme();
   return (
-    <html lang="tr">
-      <body className="antialiased">{children}</body>
+    <html lang="tr" data-theme={t.def.key}>
+      <body className="antialiased">
+        {t.decor && <ThemeDecor decor={t.def.decor} />}
+        {children}
+      </body>
     </html>
   );
 }

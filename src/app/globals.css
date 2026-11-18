@@ -31,6 +31,243 @@
   --warn-soft: #f7ecd8;
 }
 
+/* Mevsim ve özel gün temaları (lib/themes.ts) */
+:root[data-theme="kis"] {
+  --bg-top: #e6e9ef;
+  --bg: #f3ede8;
+  --surface: #fffaf6;
+  --ink: #3a2e2b;
+  --muted: #85766f;
+  --line: #e6d9d2;
+  --brand: #9a3b36;
+  --brand-dark: #772a26;
+  --brand-soft: #f3dfdb;
+  --xp: #b98a3a;
+  --xp-ink: #7a5a1d;
+  --xp-soft: #f3e7d1;
+  --fire: #c4532f;
+  --sage: #5f7f6a;
+  --sage-ink: #46604f;
+  --sage-soft: #e0e9e2;
+  --ice: #5b88a6;
+  --ice-ink: #3f6680;
+  --ice-soft: #e2ecf3;
+  --rose: #b05a6a;
+  --rose-soft: #f3e0e2;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #f6ead6;
+}
+:root[data-theme="yilbasi"] {
+  --bg-top: #f1dcd6;
+  --bg: #f4efe7;
+  --surface: #fffdf8;
+  --ink: #2f2a26;
+  --muted: #7d7268;
+  --line: #e5dccf;
+  --brand: #b0282f;
+  --brand-dark: #861c22;
+  --brand-soft: #f6dedd;
+  --xp: #c9982b;
+  --xp-ink: #81611a;
+  --xp-soft: #f6ebcf;
+  --fire: #d0552c;
+  --sage: #2e6b47;
+  --sage-ink: #22533a;
+  --sage-soft: #dbeadf;
+  --ice: #5b88a6;
+  --ice-ink: #3f6680;
+  --ice-soft: #e2ecf3;
+  --rose: #b74a5c;
+  --rose-soft: #f6e0e3;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #f6ecd5;
+}
+:root[data-theme="sevgililer"] {
+  --bg-top: #fbdbe2;
+  --bg: #fbf0f0;
+  --surface: #fffafa;
+  --ink: #3e2a2e;
+  --muted: #8d7277;
+  --line: #f0d9dc;
+  --brand: #c0394f;
+  --brand-dark: #962a3c;
+  --brand-soft: #fadfe3;
+  --xp: #c4874a;
+  --xp-ink: #84582a;
+  --xp-soft: #f7e6d6;
+  --fire: #d24f4f;
+  --sage: #6e8a5d;
+  --sage-ink: #4f6842;
+  --sage-soft: #e5ecdf;
+  --ice: #7a8fc4;
+  --ice-ink: #55689c;
+  --ice-soft: #e6eaf7;
+  --rose: #c75b74;
+  --rose-soft: #fbe0e6;
+  --danger: #a3473b;
+  --danger-soft: #f6dfdb;
+  --warn-soft: #fbeadb;
+}
+:root[data-theme="ilkbahar"] {
+  --bg-top: #e5f1e2;
+  --bg: #f4f5ef;
+  --surface: #fffffb;
+  --ink: #34363a;
+  --muted: #7c7f86;
+  --line: #e3e4dc;
+  --brand: #a65684;
+  --brand-dark: #7f3e64;
+  --brand-soft: #f4e1ec;
+  --xp: #c39a3b;
+  --xp-ink: #7c6020;
+  --xp-soft: #f5ecd3;
+  --fire: #d9734a;
+  --sage: #5f9a72;
+  --sage-ink: #3f7353;
+  --sage-soft: #ddefe2;
+  --ice: #6c97c4;
+  --ice-ink: #46709c;
+  --ice-soft: #e1ecf7;
+  --rose: #c96f8c;
+  --rose-soft: #f9e3ea;
+  --danger: #b04a4a;
+  --danger-soft: #f7e0dd;
+  --warn-soft: #f8efd9;
+}
+:root[data-theme="yaz"] {
+  --bg-top: #d8eef6;
+  --bg: #fbf6ea;
+  --surface: #fffdf7;
+  --ink: #263238;
+  --muted: #6e7a80;
+  --line: #ece2cc;
+  --brand: #1c7193;
+  --brand-dark: #145570;
+  --brand-soft: #d9edf4;
+  --xp: #e0a21b;
+  --xp-ink: #8a6208;
+  --xp-soft: #fbefcd;
+  --fire: #e8663d;
+  --sage: #3f9a8a;
+  --sage-ink: #2c7568;
+  --sage-soft: #d8efea;
+  --ice: #2f8fc4;
+  --ice-ink: #1f6a94;
+  --ice-soft: #ddeefa;
+  --rose: #e07a72;
+  --rose-soft: #fbe4e1;
+  --danger: #b4483c;
+  --danger-soft: #f8e0da;
+  --warn-soft: #fcf0d4;
+}
+:root[data-theme="sonbahar"] {
+  --bg-top: #f3d9bd;
+  --bg: #f3eadf;
+  --surface: #fffaf3;
+  --ink: #3b2c22;
+  --muted: #87745f;
+  --line: #e6d6c2;
+  --brand: #b8541c;
+  --brand-dark: #8c3e13;
+  --brand-soft: #f6e0d0;
+  --xp: #a86a2c;
+  --xp-ink: #6f4316;
+  --xp-soft: #f1e2cf;
+  --fire: #c9561f;
+  --sage: #7a7f3e;
+  --sage-ink: #5a5e2b;
+  --sage-soft: #e8e8d3;
+  --ice: #5f8ea0;
+  --ice-ink: #436c7c;
+  --ice-soft: #e1ebee;
+  --rose: #a85a4a;
+  --rose-soft: #f2ddd6;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #f5e6d0;
+}
+:root[data-theme="dogumgunu"] {
+  --bg-top: #eadcf6;
+  --bg: #f7f2f6;
+  --surface: #fffcfe;
+  --ink: #352c3a;
+  --muted: #83778a;
+  --line: #e9dfe8;
+  --brand: #8a4fb8;
+  --brand-dark: #6a3a90;
+  --brand-soft: #ece0f6;
+  --xp: #d19a22;
+  --xp-ink: #86600e;
+  --xp-soft: #f8ecd0;
+  --fire: #e0663a;
+  --sage: #4f9a73;
+  --sage-ink: #367354;
+  --sage-soft: #dcefe4;
+  --ice: #3f8fd0;
+  --ice-ink: #2a6aa0;
+  --ice-soft: #deecf8;
+  --rose: #d1407f;
+  --rose-soft: #f9dce9;
+  --danger: #b0403f;
+  --danger-soft: #f7dfdd;
+  --warn-soft: #f8edd6;
+}
+:root[data-theme="yildonumu"] {
+  --bg-top: #f4dcd8;
+  --bg: #f8efec;
+  --surface: #fffaf8;
+  --ink: #3a2a2c;
+  --muted: #8a7476;
+  --line: #eddad8;
+  --brand: #a8505e;
+  --brand-dark: #823c48;
+  --brand-soft: #f4dfe2;
+  --xp: #c09a5b;
+  --xp-ink: #7d6233;
+  --xp-soft: #f4eadb;
+  --fire: #c96a3f;
+  --sage: #6e8a5d;
+  --sage-ink: #4f6842;
+  --sage-soft: #e3eadb;
+  --ice: #7a93b0;
+  --ice-ink: #566f8c;
+  --ice-soft: #e5ebf2;
+  --rose: #b8607a;
+  --rose-soft: #f6e0e6;
+  --danger: #a3473b;
+  --danger-soft: #f4dfd9;
+  --warn-soft: #f6ebdc;
+}
+:root[data-theme="gece"] {
+  --bg-top: #2a2433;
+  color-scheme: dark;
+  --bg: #1d1916;
+  --surface: #29231f;
+  --ink: #efe7dd;
+  --muted: #a69a8c;
+  --line: #3b342d;
+  --brand: #c86f47;
+  --brand-dark: #f0b08f;
+  --brand-soft: #3e2c22;
+  --xp: #d6a54a;
+  --xp-ink: #e8c27a;
+  --xp-soft: #3a3020;
+  --fire: #e07a3f;
+  --sage: #7fa36c;
+  --sage-ink: #b5d1a5;
+  --sage-soft: #2a3326;
+  --ice: #6fa3b8;
+  --ice-ink: #a8cfdd;
+  --ice-soft: #22313a;
+  --rose: #c97b88;
+  --rose-soft: #3b272b;
+  --danger: #e27b6c;
+  --danger-soft: #3d2420;
+  --warn-soft: #372d1f;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -68,10 +305,18 @@
 
 html,
 body {
-  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+}
+/* Zemin html'de; böylece tema süslemeleri (kar, yaprak…) zeminin üstünde, kartların arkasında kalır */
+html {
+  /* Temanın havası: sayfanın üstünden zemine yumuşak bir renk geçişi */
+  background: linear-gradient(to bottom, var(--bg-top, var(--bg)), var(--bg) 70vh) no-repeat, var(--bg);
+  transition: background-color 400ms;
+}
+body {
+  background: transparent;
 }
 
 body {
@@ -270,4 +515,152 @@ h2 {
 }
 .safe-top {
   padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+/* ---------------------------------------------------------------- tema süslemeleri */
+.decor {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.decor-p {
+  position: absolute;
+  top: -8vh;
+  line-height: 1;
+  will-change: transform;
+  animation: decor-fall linear infinite;
+}
+.decor-p.rise {
+  top: auto;
+  bottom: -8vh;
+  animation-name: decor-rise;
+}
+.decor-p.twinkle {
+  animation: decor-twinkle ease-in-out infinite alternate;
+}
+.decor-flake {
+  border-radius: 9999px;
+  background: #a7bccc;
+  box-shadow: 0 0 3px rgb(255 255 255 / 0.9);
+}
+:root[data-theme="gece"] .decor-flake,
+:root[data-theme="gece"] .decor-star {
+  background: #f4e7c8;
+}
+.decor-star {
+  border-radius: 9999px;
+  background: #d8b45c;
+  box-shadow: 0 0 6px currentColor;
+}
+@keyframes decor-fall {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(var(--sway, 20px), 55vh, 0) rotate(160deg);
+  }
+  to {
+    transform: translate3d(0, 116vh, 0) rotate(320deg);
+  }
+}
+@keyframes decor-rise {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate3d(var(--sway, 20px), -55vh, 0);
+  }
+  to {
+    transform: translate3d(0, -116vh, 0);
+    opacity: 0.2;
+  }
+}
+@keyframes decor-twinkle {
+  from {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+/* Yaz: ekranın altında yavaşça dalgalanan deniz */
+.decor-waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30vh;
+}
+.decor-waves svg {
+  position: absolute;
+  bottom: 0;
+  width: 200%;
+  height: 100%;
+  animation: decor-wave 14s linear infinite;
+}
+.decor-waves svg + svg {
+  animation-duration: 22s;
+  animation-direction: reverse;
+  opacity: 0.7;
+}
+@keyframes decor-wave {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.decor-sun {
+  position: absolute;
+  top: 18vh;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #f6c94a 0 45%, rgb(246 201 74 / 0.25) 46% 62%, transparent 63%);
+  opacity: 0.55;
+}
+
+/* Yılbaşı: üst çubuğun altında yanıp sönen ışık zinciri */
+:root[data-theme="yilbasi"] header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 12px;
+  background:
+    radial-gradient(circle at 10px 6px, #e0443e 0 4px, transparent 5px) 0 0 / 80px 12px repeat-x,
+    radial-gradient(circle at 30px 6px, #f2c14e 0 4px, transparent 5px) 0 0 / 80px 12px repeat-x,
+    radial-gradient(circle at 50px 6px, #3f9a5f 0 4px, transparent 5px) 0 0 / 80px 12px repeat-x,
+    radial-gradient(circle at 70px 6px, #4f8fd8 0 4px, transparent 5px) 0 0 / 80px 12px repeat-x;
+  animation: lights 1.6s steps(2) infinite;
+  pointer-events: none;
+}
+@keyframes lights {
+  50% {
+    filter: brightness(1.35) saturate(1.3);
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .decor-p,
+  .decor-waves svg,
+  :root[data-theme="yilbasi"] header::after {
+    animation: none;
+  }
+  .decor-p {
+    display: none;
+  }
 }

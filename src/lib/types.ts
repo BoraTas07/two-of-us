@@ -55,7 +55,7 @@ export const COLORS = {
 } as const;
 
 /** Ortak görevlerin rengi (kişi renklerinden ayrı, uygulamanın kiremit tonu) */
-export const SHARED_COLOR = { name: "Ortak", bg: "#a65d3c", soft: "#f3e4d9", dark: "#82462c" };
+export const SHARED_COLOR = { name: "Ortak", bg: "var(--brand)", soft: "var(--brand-soft)", dark: "var(--brand-dark)" };
 
 export type ColorName = keyof typeof COLORS;
 

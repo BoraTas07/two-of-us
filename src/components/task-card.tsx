@@ -157,7 +157,7 @@ export default function TaskCard({
         <Link
           href={`/gorevler/${item.id}`}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl"
-          style={{ background: c.soft, boxShadow: `inset 0 0 0 1.5px ${c.bg}40` }}
+          style={{ background: c.soft, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${c.bg} 25%, transparent)` }}
           aria-hidden
           tabIndex={-1}
         >
